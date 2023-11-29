@@ -32,7 +32,7 @@ def generate_launch_description():
     rvizcfg = os.path.join(pkgdir('finalprojectcode'), 'rviz/viewurdf.rviz')
 
     # Locate the URDF file.
-    urdf = os.path.join(pkgdir('finalprojectcode'), 'urdf/stewart.urdf')
+    urdf = os.path.join(pkgdir('finalprojectcode'), 'urdf/Slider_Shaft.urdf')
 
     # Load the robot's URDF file (XML).
     with open(urdf, 'r') as file:
