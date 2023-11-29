@@ -29,10 +29,10 @@ def generate_launch_description():
     # LOCATE FILES
 
     # Locate the RVIZ configuration file.
-    rvizcfg = os.path.join(pkgdir('hw3code'), 'rviz/viewurdf.rviz')
+    rvizcfg = os.path.join(pkgdir('finalprojectcode'), 'rviz/viewurdf.rviz')
 
     # Locate the URDF file.
-    urdf = os.path.join(pkgdir('hw6code'), 'urdf/sixDOF_Obstacle.urdf')
+    urdf = os.path.join(pkgdir('finalprojectcode'), 'urdf/stewart.urdf')
 
     # Load the robot's URDF file (XML).
     with open(urdf, 'r') as file:

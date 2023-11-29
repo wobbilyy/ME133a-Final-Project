@@ -8,12 +8,12 @@ import numpy as np
 from math import pi, sin, cos, acos, atan2, sqrt, fmod, exp
 
 # Grab the utilities
-from hw5code.GeneratorNode      import GeneratorNode
-from hw5code.TransformHelpers   import *
-from hw5code.TrajectoryUtils    import *
+from finalprojectcode.GeneratorNode      import *
+from finalprojectcode.TransformHelpers   import *
+from finalprojectcode.TrajectoryUtils    import *
 
 # Grab the general fkin from HW5 P5.
-from hw5code.KinematicChain     import KinematicChain
+from finalprojectcode.KinematicChain     import KinematicChain
 
 # Import the format for the condition number message
 from std_msgs.msg import Float64
@@ -28,7 +28,9 @@ class Trajectory():
         self.chain = KinematicChain(node, 'world', 'tip', self.jointnames())
 
         # Define the various points.
-        self.q0 = np.radians(np.array([0, 90, -90, 0, 0, 0]).reshape((-1,1)))
+
+        # self.q0 = np.radians(np.array([0, 90, -90, 0, 0, 0]).reshape((-1,1)))
+        self.q0 = np.array([0.0])
         self.p0 = np.array([0.0, 0.55, 1.0]).reshape((-1,1))
         self.R0 = Reye()
 
@@ -47,16 +49,18 @@ class Trajectory():
     # Declare the joint names.
     def jointnames(self):
         # Return a list of joint names FOR THE EXPECTED URDF!
-        return ['theta1', 'theta2', 'theta3', 'theta4', 'theta5', 'theta6']
+        # return ['theta1', 'theta2', 'theta3', 'theta4', 'theta5', 'theta6']
+        return ['theta1', 'theta2', 'theta3']
 
     # Evaluate at the given time.  This was last called (dt) ago.
     def evaluate(self, t, dt):
+        return None
+    
+        # q = self.q0
+        # qdot = np.zeros((3, 1))
 
-        q = self.q0
-        qdot = np.zeros((3, 1))
-
-        # Return the position and velocity as python lists.
-        return (q.flatten().tolist(), qdot.flatten().tolist())
+        # # Return the position and velocity as python lists.
+        # return (q.flatten().tolist(), qdot.flatten().tolist())
 
 
 #
