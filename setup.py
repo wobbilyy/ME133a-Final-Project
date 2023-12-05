@@ -12,6 +12,7 @@ setup(
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
         ('share/' + package_name + '/launch', glob('launch/*')),
+        ('share/' + package_name + '/meshes', glob('meshes/*')),
         ('share/' + package_name + '/urdf',   glob('urdf/*')),
     ],
     install_requires=['setuptools'],

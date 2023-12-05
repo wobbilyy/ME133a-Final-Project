@@ -138,13 +138,13 @@
     <parent link="world"/>
     <child  link="mount1"/>
   </joint>
+
   <link name="mount1">
     <visual>
-      <origin xyz="0 0 0.1" rpy="0 0 0"/>
+      <origin rpy="0 0 0" xyz="0.15 0 0.35"/>
       <geometry>
-	<cylinder length="0.2" radius="0.02"/>
+        <mesh filename="package://hw7code/meshes/Slider_Shaft.stl"/>
       </geometry>
-      <material name="black"/>
     </visual>
     <collision>
       <origin xyz="0 0 0.1" rpy="0 0 0"/>

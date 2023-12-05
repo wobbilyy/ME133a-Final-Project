@@ -82,11 +82,10 @@
 
   <link name="table">
     <visual>
-      <origin xyz="0 0 -0.425" rpy="0 0 0"/>
+      <origin rpy="3.14159 0 0" xyz="0 0 0"/>
       <geometry>
-	<box size="1.0 1.0 0.05"/>
+        <mesh filename="package://finalprojectcode/meshes/Platform_Top.dae"/>
       </geometry>
-      <material name="table"/>
     </visual>
   </link>
 
@@ -150,7 +149,7 @@
 
   <link name="pitch1motor">
     <visual>
-      <origin xyz="0 0 0" rpy="0 1.5708 0"/>
+      <origin xyz="0 1.25 -0.2" rpy="0 1.5708 0"/>
       <geometry>
 	<cylinder length="0.4" radius="0.1"/>
       </geometry>

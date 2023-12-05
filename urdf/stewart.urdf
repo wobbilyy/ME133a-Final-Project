@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<robot name="threeDOF">
+<robot name="stewart">
   
   <!-- *************************************************** -->
   <!-- ******************** Kinematics ******************* -->
@@ -11,15 +11,48 @@
 
   <link name="world"/>
 
-  <joint name="theta1" type="prismatic">
+
+  <joint name="theta1" type="continuous">
     <parent link="world"/>
+    <child  link="link1"/>
+    <origin xyz="0 1.25 -0.2" rpy="0 0 0"/>
+    <axis   xyz="1 0 0"/>
+  </joint>
+
+  <link name="link1"/>
+
+  <joint name="theta2" type="continuous">
+    <parent link="link1"/>
+    <child  link="link2"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <axis   xyz="0 1 0"/>
+  </joint>
+
+  <link name="link2"/>
+
+  <joint name="d3" type="prismatic">
+    <parent link="link2"/>
+    <child  link="link3"/>
+    <origin xyz="0 0 -0.4" rpy="0 0 0"/>
+    <limit effort="1000.0" lower="0" upper="1.5" velocity="0.5"/>
+    <axis   xyz="0 0 -1"/>
+  </joint>
+
+  <link name="link3"/>
+
+  <joint name="shifttotip" type="fixed">
+    <parent link="link3"/>
     <child  link="tip"/>
     <origin xyz="0 0 0" rpy="0 0 0"/>
-    <limit effort="1000.0" lower="-2.5" upper="2.5" velocity="0.5"/>
-    <axis   xyz="0 0 1"/>
   </joint>
 
   <link name="tip"/>
+
+  <!-- <link name="platform4">
+
+  <link name="platform5">
+
+  <link name="platform6"> -->
 
 
   <!-- *************************************************** -->
@@ -50,19 +83,61 @@
 
   <!-- *** Table - attached to world *** -->
 
-  <!-- <joint name="attach-table" type="fixed">
+  <joint name="attach-top" type="fixed">
     <parent link="world"/>
-    <child  link="table"/>
+    <child  link="top"/>
   </joint>
 
-  <link name="table">
+  <link name="top">
     <visual>
-      <origin xyz="0 0 -0.425" rpy="0 0 0"/>
+      <origin rpy="3.14159 0 0" xyz="0 0 0"/>
       <geometry>
-	<box size="1.0 1.0 0.05"/>
+        <mesh filename="package://finalprojectcode/meshes/Platform_Top.dae"/>
       </geometry>
-      <material name="table"/>
     </visual>
-  </link> -->
+  </link>
+
+
+  <joint name="attach-joint1" type="fixed">
+    <parent link="link1"/>
+    <child  link="uj-shaft"/>
+  </joint>
+
+  <link name="uj-shaft">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://finalprojectcode/meshes/UJ_Shaft.dae"/>
+      </geometry>
+    </visual>
+  </link>
+
+  <joint name="attach-joint2" type="fixed">
+    <parent link="link2"/>
+    <child  link="slider-base"/>
+  </joint>
+
+  <link name="slider-base">
+    <visual>
+      <origin rpy="3.14159 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://finalprojectcode/meshes/Slider_Base.dae"/>
+      </geometry>
+    </visual>
+  </link>
+
+<joint name="attach-joint3" type="fixed">
+    <parent link="link3"/>
+    <child  link="slider-shaft"/>
+  </joint>
+
+  <link name="slider-shaft">
+    <visual>
+      <origin rpy="3.14159 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://finalprojectcode/meshes/Slider_Shaft.dae"/>
+      </geometry>
+    </visual>
+  </link>
 
 </robot>
