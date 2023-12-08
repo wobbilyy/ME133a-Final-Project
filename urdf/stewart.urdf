@@ -11,7 +11,7 @@
 
   <link name="world">
     <visual>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <origin rpy="0 0 0" xyz="0 0 0.1"/>
       <geometry>
         <mesh filename="package://finalprojectcode/meshes/Bottom.dae"/>
       </geometry>
@@ -22,12 +22,12 @@
   <joint name="leg1-pitch" type="continuous">
     <parent link="world"/>
     <child  link="leg1-uj-shaft"/>
-    <origin xyz="0 1.25 0.2" rpy="0 0 0"/>
+    <origin xyz="0.25 1.5 0.3" rpy="0 0 0"/>
     <axis   xyz="1 0 0"/>
   </joint>
 
   <link name="leg1-uj-shaft">
-    <!-- <visual>
+    <visual>
       <origin rpy="3.14159 0 0" xyz="0 0 0"/>
       <geometry>
         <mesh filename="package://finalprojectcode/meshes/UJ_Shaft.dae"/>
@@ -92,7 +92,7 @@
   <joint name="leg2-pitch" type="continuous">
     <parent link="world"/>
     <child  link="leg2-uj-shaft"/>
-    <origin xyz="-1.08253 0.625 0.2" rpy="0 0 1.04719"/>
+    <origin xyz="-0.25 1.50 0.3" rpy="0 0 0"/>
     <axis   xyz="1 0 0"/>
   </joint>
 
@@ -157,12 +157,10 @@
   
   ##### LEG 3
   
-  # cos(240) sin (240) = y
-  # rotate 120
   <joint name="leg3-pitch" type="continuous">
     <parent link="world"/>
     <child  link="leg3-uj-shaft"/>
-    <origin xyz="-1.08253 -0.625 0.2" rpy="0 0 2.094395"/>
+    <origin xyz="-1.424038 -0.533494 0.3" rpy="0 0 2.094395"/>
     <axis   xyz="1 0 0"/>
   </joint>
 
@@ -227,12 +225,10 @@
   
   ##### LEG 4
   
-  # 1.25sin(180) 1.25cos (180) = y
-  # rotate 0 / 180
   <joint name="leg4-pitch" type="continuous">
     <parent link="world"/>
     <child  link="leg4-uj-shaft"/>
-    <origin xyz="0 -1.25 0.2" rpy="0 0 0"/>
+    <origin xyz="-1.1174038 -0.96650635 0.3" rpy="0 0 2.094395"/>
     <axis   xyz="1 0 0"/>
   </joint>
 
@@ -297,12 +293,10 @@
 
   ##### LEG 5
   
-  # 1.25sin(120) 1.25cos (120) = y
-  # rotate 60
   <joint name="leg5-pitch" type="continuous">
     <parent link="world"/>
     <child  link="leg5-uj-shaft"/>
-    <origin xyz="1.0825317 -0.625 0.2" rpy="0 0 1.047197"/>
+    <origin xyz="1.1174038 -0.966506 0.3" rpy="0 0 0"/>
     <axis   xyz="1 0 0"/>
   </joint>
 
@@ -368,12 +362,10 @@
   
   ##### LEG 6
   
-  # 1.25sin(60) 1.25cos (60) = y
-  # rotate -60
   <joint name="leg6-pitch" type="continuous">
     <parent link="world"/>
     <child  link="leg6-uj-shaft"/>
-    <origin xyz="1.0825317 0.625 0.2" rpy="0 0 -1.047197"/>
+    <origin xyz="1.424038 -0.533494 0.3" rpy="0 0 1.047197"/>
     <axis   xyz="1 0 0"/>
   </joint>
 
@@ -428,14 +420,21 @@
 
   <link name="leg6-tip"/>
   
-    <joint name="leg6-tip-to-platform" type="fixed">
+  <joint name="leg6-tip-to-platform" type="fixed">
     <parent link="leg6-tip"/>
     <child  link="leg6-platform"/>
-    <origin xyz="0 1.25 -0.2" rpy="0 0 0"/>
+    <origin xyz="0 0 -0.2" rpy="0 0 0"/>
   </joint>
 
-  <link name="leg6-platform"/>
-
+  <link name="leg6-platform">
+     <visual>
+      <origin rpy="0 0 0" xyz="-1.424038 -0.533494 -0.5"/>
+      <geometry>
+        <mesh filename="package://finalprojectcode/meshes/Platform_Top.dae"/>
+      </geometry>
+    </visual>
+  </link>
+	
 
   <!-- *************************************************** -->
   <!-- ********************* Graphics ******************** -->
