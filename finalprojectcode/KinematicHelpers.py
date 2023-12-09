@@ -17,44 +17,14 @@ class KinematicHelpers():
     def invkin(self, q):
         '''
         Given q = [Tx, Ty, Tz, psi, theta, phi],
-        fkin(q) returns x = [L1, L2, L3, L4, L5, L6]
+        invkin(q) returns x = [L1, L2, L3, L4, L5, L6]
         '''
-        Tx = q[0]-self.center_pos[0]
-        Ty = q[1]-self.center_pos[1]
-        Tz = q[2]-self.center_pos[2]
-        psi = q[3]
-        theta = q[4]
-        phi = q[5]
+        leg_vectors = self.get_leg_vectors(q)
 
         X = [0,0,0,0,0,0] # X matrix
-        Y = [0,0,0,0,0,0] # Y matrix
         for i in range(6):
-            T = np.array([Tx,Ty,Tz]).transpose()                # Translation of the center of top
-            p = np.array([self.top_pos[i][0]-self.center_pos[0], 
-                        self.top_pos[i][1]-self.center_pos[1],
-                        self.top_pos[i][2]-self.center_pos[2]]).transpose()  # Vector between point on top and center of top
-            b = np.array(self.base_pos[i]).transpose()               # Base position of given leg
-            Rb = Rotz(psi) @ Roty(theta) @ Rotx(phi)            # Rotation of the top plate
-            l = T + Rb @ p - b                                  # Vector of leg
+            l = leg_vectors[i]
             X[i] = math.sqrt(l[0]**2 + l[1]**2 + l[2]**2)  # Length of leg
-
-            cos_psi = cos(psi)
-            sin_psi = sin(psi)
-            cos_theta = cos(theta)
-            sin_theta = sin(theta)
-            cos_phi = cos(phi)
-            sin_phi = sin(phi)
-            
-            T = np.array([Tx,Ty,Tz]).transpose()                # Translation of the center of top
-            b = np.array(self.base_pos[i]).transpose()               # Base position of given leg
-            R_matrix = np.array([p[0]*(cos_psi*cos_theta) + p[1]*(-sin_psi*cos_phi + cos_psi*sin_theta*sin_phi) + p[2]*(sin_psi*sin_phi + cos_psi*sin_theta*cos_phi), 
-                    p[0]*(sin_psi*cos_theta) + p[1]*(cos_psi*cos_phi + sin_psi*sin_theta*sin_phi) + p[2]*(-cos_psi*sin_phi + sin_psi*sin_theta*cos_phi), 
-                    p[0]*-sin_theta + p[1]*(cos_theta*sin_phi) + p[2]*(cos_theta*cos_phi)]).transpose()
-            l_i = (T + R_matrix - b)
-
-            if np.linalg.norm(Rb @ p - R_matrix.astype(float)) > 0.01:
-                print("HELP!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-            Y[i] = math.sqrt(l_i[0]**2 + l_i[1]**2 + l_i[2]**2)  # Length of leg
 
         return X
 
@@ -102,7 +72,7 @@ class KinematicHelpers():
                         self.top_pos[i][1]-self.center_pos[1],
                         self.top_pos[i][2]-self.center_pos[2]]).transpose()  # Vector between point on top and center of top
 
-            # Partial derivatives (ugly)
+            ######################################## HAND-CALCULATED DERIVATIVE ####################################
             dlx_dphi = (np.sin(psi)*np.sin(phi)+np.cos(psi)*np.sin(theta)*np.cos(phi))*p[1] 
             + (np.sin(psi)*np.cos(phi)-np.cos(psi)*np.sin(theta)*np.sin(phi))*p[2]
             
@@ -141,7 +111,7 @@ class KinematicHelpers():
             J.append(np.array([1/L, 1/L, 1/L, dl_dpsi/L, dl_dtheta/L, dl_dphi/L]))
 
             
-            ######################################## COMPUTER DERIVATIVE ####################################
+            ######################################## COMPUTER-CALCULATED DERIVATIVE ####################################
             psi_1, theta_1, phi_1 = symbols('psi_1 theta_1 phi_1')
             cos_psi = cos(psi_1)
             sin_psi = sin(psi_1)
@@ -182,6 +152,7 @@ class KinematicHelpers():
             J_expected.append(np.array([1/L, 1/L, 1/L, float(dl_dpsi_1/L), float(dl_dtheta_1/L), float(dl_dphi_1/L)]))
             
         
+        '''Debugging of derivatives of fkin matrix
         print("JACOBIAN =======================")
         s = [[str(e) for e in row] for row in J]
         lens = [max(map(len, col)) for col in zip(*s)]
@@ -196,6 +167,7 @@ class KinematicHelpers():
         fmt = '\t'.join('{{:{}}}'.format(x) for x in lens)
         table = [fmt.format(*row) for row in s]
         print('\n'.join(table))
+        '''
         
 
         return J_expected
@@ -209,8 +181,6 @@ class KinematicHelpers():
         Given x = [L1, L2, L3, L4, L5, L6],
         and qstart = [Tx, Ty, Tz, psi, theta, phi] (intial guess)
         fkin returns q = [Tx, Ty, Tz, psi, theta, phi] (resulting orientation of top platform)
-
-        FIXME: will this work?
         '''
 
         # Set the initial joint value guess.
@@ -241,32 +211,70 @@ class KinematicHelpers():
         return q
     
 
-    def stewart_to_spider_q(stewart_q):
+    def stewart_to_spider_q(self, stewart_q):
         '''
         In: stewart_q [Tx, Ty, Tz, psi, theta, phi]
-        Out: spider_q [??]
+        Out: spider_q [leg1-pitch, leg1-roll, leg1-prismatic,
+                leg2-pitch, leg2-roll, leg2-prismatic,
+                leg3-pitch, leg3-roll, leg3-prismatic,
+                leg4-pitch, leg4-roll, leg4-prismatic,
+                leg5-pitch, leg5-roll, leg5-prismatic,
+                leg6-pitch, leg6-roll, leg6-prismatic]
         '''
-        print("Need to do")
+        
+        # To get the leg_pitch and leg_roll, let's use our 2DOF inverse kinematics
+        # for a pan-tilt algorithm
+        leg_vectors = self.get_leg_vectors(stewart_q)
+        leg_lengths = self.invkin(stewart_q)
+        spider_q = []
 
+        for i in range(6):
+            leg = leg_vectors[i]
+            leg_length = leg_lengths[i]
+            R = np.sqrt(leg[0]**2 + leg[1]**2 + leg[2]**2)
+            dx = leg[0]/R
+            dy = leg[1]/R
+            dz = leg[2]/R
+            r = np.sqrt(dx**2 + dy**2)
+
+            pitch = np.arctan2(dz,r) # Rotation about Y 
+            roll =  np.arctan2(-dx/r,dy/r) # Rotation about X
+            spider_q.append([pitch, roll, leg_length])
+
+        return spider_q
+
+
+    def get_leg_vectors(self,q):
         '''
-        Inverse kinematics for trajectories (from HW 6)
-
-        # Compute the inverse kinematics
-        vr = vd + self.lam * ep(pdlast, p)
-        wr = wd + self.lam * eR(Rdlast, R)
-        J = np.vstack((Jv, Jw))
-        xrdot = np.vstack((vr, wr))
-        qdot = np.linalg.inv(J) @ xrdot
-
-        # Compute the inverse kinematics
-        # Integrate the joint position.
-        q = qlast + dt * qdot
-
-        # Save the joint value and desired values for next cycle.
-        self.q = q
-        self.pd = pd
-        self.Rd = Rd
+        Given q = [Tx, Ty, Tz, psi, theta, phi],
+        get_leg_vectors(q) returns x = [[l1x, l1y, l1z], 
+                                        [l2x, l2y, l2z],
+                                        [l3x, l3y, l3z],
+                                        [l4x, l4y, l4z],
+                                        [l5x, l5y, l5z],
+                                        [l6x, l6y, l6z]]
         '''
+
+        Tx = q_start[0]-self.center_pos[0]
+        Ty = q[1]-self.center_pos[1]
+        Tz = q[2]-self.center_pos[2]
+        psi = q[3]
+        theta = q[4]
+        phi = q[5]
+
+        L = []
+
+        for i in range(6):
+            T = np.array([Tx,Ty,Tz]).transpose()                # Translation of the center of top
+            p = np.array([self.top_pos[i][0]-self.center_pos[0], 
+                        self.top_pos[i][1]-self.center_pos[1],
+                        self.top_pos[i][2]-self.center_pos[2]]).transpose()  # Vector between point on top and center of top
+            b = np.array(self.base_pos[i]).transpose()               # Base position of given leg
+            Rb = Rotz(psi) @ Roty(theta) @ Rotx(phi)            # Rotation of the top plate
+            l = T + Rb @ p - b                                  # Vector of leg
+            L.append([float(l[0]), float(l[1]), float(l[2])])
+        
+        return L
 
 #
 #  Testing kinematics helpers
