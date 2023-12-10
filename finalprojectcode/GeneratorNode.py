@@ -63,6 +63,8 @@ class GeneratorNode(Node):
         # Add a publisher to send the joint commands.
         self.pub = self.create_publisher(JointState, '/joint_states', 10)
 
+        ##### MARKER ARRAY TO RENDER TOP PLATFORM PLATE #####
+        ##### COMMENT OUT FOR FULL DEMO #####
         # Prepare the publisher (latching for new subscribers).
         quality = QoSProfile(durability=DurabilityPolicy.TRANSIENT_LOCAL, depth=1)
         self.marker_publisher = self.create_publisher(MarkerArray, '/visualization_marker_array', quality)
@@ -91,6 +93,7 @@ class GeneratorNode(Node):
         # Create the marker array message.
         self.mark = MarkerArray()
         self.mark.markers.append(self.marker)
+        ######
 
         # Wait for a connection to happen.  This isn't necessary, but
         # means we don't start until the rest of the system is ready.
@@ -172,8 +175,9 @@ class GeneratorNode(Node):
         self.pub.publish(cmdmsg)
 
         # publish platform top
-        self.marker.header.stamp  = now.to_msg()
-        self.marker.pose.position.x = float(x[0])
-        self.marker.pose.position.y = float(x[1])
-        self.marker.pose.position.z = float(x[2] + 2.8)
-        self.marker_publisher.publish(self.mark)
+        if x != None:
+            self.marker.header.stamp  = now.to_msg()
+            self.marker.pose.position.x = float(x[0])
+            self.marker.pose.position.y = float(x[1])
+            self.marker.pose.position.z = float(x[2] + 2.8)
+            self.marker_publisher.publish(self.mark)

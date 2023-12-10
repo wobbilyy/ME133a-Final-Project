@@ -28,7 +28,7 @@ class Trajectory():
         height = 2.6
         self.base_pos = [[ 0.25     ,  1.5       , 0],
                     [-0.25     ,  1.5       , 0],
-                    [-1.424038 , -0.533494  , 0], 
+                    [-1.424038 , -0.533494  , 0],
                     [-1.1174038, -0.96650635, 0], 
                     [ 1.1174038, -0.96650635, 0], 
                     [ 1.424038 , -0.533494  , 0]]
@@ -74,16 +74,14 @@ class Trajectory():
         self.left_right = [
             np.array(self.q0),
             np.array(self.q_up),
+            # np.array(self.q_left),
             # np.array(self.q_right)
-            # np.array(self.KinematicChain.stewart_to_spider_q([1, 0, 1, np.radians(0), np.radians(0), np.radians(0)])),
-            # np.array(self.KinematicChain.stewart_to_spider_q([-1, 0, 0.5, np.radians(0), np.radians(0), np.radians(0)]))
         ]
         self.left_right_positions = [
             np.array(self.x0),
-            np.array(self.x_up),
+            np.array(self.x_up)
+            # np.array(self.x_left),
             # np.array(self.x_right)
-            # np.array(self.KinematicChain.stewart_to_spider_q([1, 0, 1, np.radians(0), np.radians(0), np.radians(0)])),
-            # np.array(self.KinematicChain.stewart_to_spider_q([-1, 0, 0.5, np.radians(0), np.radians(0), np.radians(0)]))
         ]
         self.last_time = -1
         self.desired_time = 2
@@ -131,6 +129,7 @@ class Trajectory():
 
     # Evaluate at the given time.  This was last called (dt) ago.
     def evaluate(self, t, dt):
+        ##### UP DOWN DEMO WITH PLATFORM POSITION #####
         if t > self.desired_time * 2 * len(self.left_right):
             return None
 
@@ -154,11 +153,14 @@ class Trajectory():
 
         xdot = ((self.left_right_positions[next_index] - self.left_right_positions[self.index]) / self.desired_time)
         x = self.left_right_positions[self.index] + xdot * delta
+        x = x.flatten().tolist()
 
+        ##### USE FKIN TO DETERMINE TOP PLATFORM #####
         # x = self.KinematicChain.fkin(np.array([q[2], q[5], q[8], q[11], q[14], q[17]]), self.x0)
-        # print("----\n", np.array([q[2], q[5], q[8], q[11], q[14], q[17]]))
-        # print("----\n", x)
+        # print("---- leg lengths ---\n", np.array([q[2], q[5], q[8], q[11], q[14], q[17]]))
+        # print("---- x ----\n", x)
 
+        ##### FULL DEMO ####
         # if t > self.desired_time * len(self.demo):
         #     return None
 
@@ -177,11 +179,13 @@ class Trajectory():
         # qdot = ((self.demo[next_index] - self.demo[self.index]) / self.desired_time)
         # q = self.demo[self.index] + qdot * delta
 
-        # qdot = np.zeros((18, 1))
-        # q = np.array(self.q_left)
+        # # qdot = np.zeros((18, 1))
+        # # q = np.array(self.q_left)
+
+        # x = None
 
         # Return the position and velocity as python lists.
-        return (q.flatten().tolist(), qdot.flatten().tolist(), x.flatten().tolist())
+        return (q.flatten().tolist(), qdot.flatten().tolist(), x)
 
 
 #
