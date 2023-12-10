@@ -10,6 +10,7 @@ from math import pi, sin, cos, acos, atan2, sqrt, fmod, exp
 from finalprojectcode.GeneratorNode      import GeneratorNode
 from hw5code.TransformHelpers   import *
 from hw5code.TrajectoryUtils    import *
+import KinematicHelpers
 
 # Grab the general fkin from HW5 P5.
 from finalprojectcode.KinematicChain     import KinematicChain
@@ -85,6 +86,30 @@ class Trajectory():
         self.last_time = -1
         self.desired_time = 2
         self.index = 0
+
+        # Initialize kinematic chain helper object
+        base_pos = [[0.25, 1.5, 0],
+                    [-0.25, 1.5, 0],
+                    [-1.424038, -0.533494, 0], 
+                    [-1.1174038, -0.96650635, 0], 
+                    [1.1174038, -0.966506, 0], 
+                    [1.424038, -0.533494, 0]]
+        r =  1.25
+        height = 2.6
+        center_pos = [0,0,height-0.2]
+        top_pos = [
+                [r * np.cos(np.pi/180*(0)), r * np.cos(np.pi/180*(0)), height - 0.2],
+                [r * np.cos(np.pi/180*(60)), r * np.cos(np.pi/180*(60)), height - 0.2],
+                [r * np.cos(np.pi/180*(120)), r * np.cos(np.pi/180*(120)), height - 0.2],
+                [r * np.cos(np.pi/180*(180)), r * np.cos(np.pi/180*(180)), height - 0.2],
+                [r * np.cos(np.pi/180*(240)), r * np.cos(np.pi/180*(240)), height - 0.2],
+                [r * np.cos(np.pi/180*(300)), r * np.cos(np.pi/180*(300)), height - 0.2]
+                ]   
+        self.K = KinematicHelpers(top_pos, center_pos, base_pos)
+
+        self.stewart_q = [0,0,0,0,0,0] # Current position/orientation of top plate
+        self.xgoal = self.K.invkin(self.stewart_q)      # Desired leg lengths. Set to current leg lengths for now.
+                                                        # TODO: From main loop, update this to new lengths.
 
         # Initialize the current/starting joint position.
         self._lambda = 20
@@ -170,12 +195,13 @@ def main(args=None):
     # Initialize ROS.
     rclpy.init(args=args)
 
-    # Initialize the generator node for 100Hz udpates, using the above
+    # Initialize the generator node for 100Hz udpates, unp.sing the above
     # Trajectory class.
-    generator = GeneratorNode('generator', 100, Trajectory)
+    T = Trajectory
+    generator = GeneratorNode('generator', 100, T)
 
     # Spin, meaning keep running (taking care of the timer callbacks
-    # and message passing), until interrupted or the trajectory ends.
+    # and message pasnp.sing), until interrupted or the trajectory ends.
     generator.spin()
 
     # Shutdown the node and ROS.
