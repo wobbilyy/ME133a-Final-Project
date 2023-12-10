@@ -232,13 +232,19 @@ class KinematicHelpers():
             leg = leg_vectors[i]
             leg_length = leg_lengths[i]
             R = np.sqrt(leg[0]**2 + leg[1]**2 + leg[2]**2)
-            dx = leg[0]/R
-            dy = leg[1]/R
-            dz = leg[2]/R
+            dx = leg[1]/R
+            dy = leg[2]/R
+            dz = leg[0]/R
             r = np.sqrt(dx**2 + dy**2)
 
             pitch = np.arctan2(dz,r) # Rotation about Y 
             roll =  np.arctan2(-dx/r,dy/r) # Rotation about X
+
+            # Let's check. Do this pitch and roll work out?
+            p_0 = (np.array([0,0,R]).transpose())
+            apparent_leg = Rotx(roll) @ Roty(pitch) @ p_0
+            print(f"Apparent leg: {apparent_leg} vs actual leg: {leg}")
+
             spider_q.append(pitch)
             spider_q.append(roll)
             spider_q.append(leg_length)
@@ -273,7 +279,7 @@ class KinematicHelpers():
                         self.top_pos[i][2]-self.center_pos[2]]).transpose()  # Vector between point on top and center of top
             b = np.array(self.base_pos[i]).transpose()               # Base position of given leg
             Rb = Rotz(psi) @ Roty(theta) @ Rotx(phi)            # Rotation of the top plate
-            l = T + Rb @ p - b                                  # Vector of leg
+            l = -(T + Rb @ p - b)                                  # Vector of leg
             L.append([float(l[0]), float(l[1]), float(l[2])])
         
         return L
@@ -315,6 +321,7 @@ if __name__ == "__main__":
     q = K.fkin(test_x, q_start)
     print(f"For leg lengths {test_x}: found q = {q}")
     print(f"Leg lengths given q: {K.invkin(q)}")
+    print(f"Spider q: {K.stewart_to_spider_q(q)}")
 
 
 
@@ -326,9 +333,9 @@ if __name__ == "__main__":
                 [-1.1174038, -0.96650635, 0.3], 
                 [1.1174038, -0.966506, 0.3], 
                 [1.424038, -0.533494, 0.3]]
-    center_pos = [0,0,3]
     r = 0.125
-    height = 3
+    height = 2.6
+    center_pos = [0,0,height]
     top_pos = [[0, r, height - 0.2],
             [r * np.cos(np.pi/180.0*(30)),  r * np.sin(np.pi/180.0*(30)), height - 0.2],
             [r * np.cos(np.pi/180.0*(30)),  r * np.sin(np.pi/180.0*(-30)), height - 0.2],
