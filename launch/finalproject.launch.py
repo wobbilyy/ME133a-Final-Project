@@ -29,7 +29,7 @@ def generate_launch_description():
     # LOCATE FILES
 
     # Locate the RVIZ configuration file.
-    rvizcfg = os.path.join(pkgdir('hw3code'), 'rviz/viewurdf.rviz')
+    rvizcfg = os.path.join(pkgdir('finalprojectcode'), 'rviz/viewurdf.rviz')
 
     # Locate the URDF file.
     urdf = os.path.join(pkgdir('finalprojectcode'), 'urdf/stewart.urdf')
@@ -37,6 +37,9 @@ def generate_launch_description():
     # Load the robot's URDF file (XML).
     with open(urdf, 'r') as file:
         robot_description = file.read()
+
+    # Locate the RVIZ configuration file.
+    # rviz_marker_cfg = os.path.join(pkgdir('finalprojectcode'), 'rviz/viewmarkers.rviz')
 
 
     ######################################################################
@@ -66,13 +69,13 @@ def generate_launch_description():
         executable = 'finalproject',
         output     = 'screen')
     
-        # Configure a node for the GUI
-    node_gui = Node(
-        name       = 'gui', 
-        package    = 'joint_state_publisher_gui',
-        executable = 'joint_state_publisher_gui',
-        output     = 'screen',
-        on_exit    = Shutdown())
+    # # Configure a node for the GUI
+    # node_gui = Node(
+    #     name       = 'gui', 
+    #     package    = 'joint_state_publisher_gui',
+    #     executable = 'joint_state_publisher_gui',
+    #     output     = 'screen',
+    #     on_exit    = Shutdown())
 
 
     ######################################################################
@@ -82,5 +85,5 @@ def generate_launch_description():
         node_robot_state_publisher,
         node_rviz,
         node_trajectory,
-        node_gui,
+        # node_gui,
     ])
