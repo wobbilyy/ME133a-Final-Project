@@ -64,7 +64,6 @@ class GeneratorNode(Node):
         self.pub = self.create_publisher(JointState, '/joint_states', 10)
 
         ##### MARKER ARRAY TO RENDER TOP PLATFORM PLATE #####
-        ##### COMMENT OUT FOR FULL DEMO #####
         # Prepare the publisher (latching for new subscribers).
         quality = QoSProfile(durability=DurabilityPolicy.TRANSIENT_LOCAL, depth=1)
         self.marker_publisher = self.create_publisher(MarkerArray, '/visualization_marker_array', quality)

@@ -70,6 +70,14 @@ class Trajectory():
             np.array(self.q_back),
             np.array(self.q_forward),
         ]
+        self.demo_positions = [
+            np.array(self.x0),
+            np.array(self.x_up),
+            np.array(self.x_right),
+            np.array(self.x_left),
+            np.array(self.x_back),
+            np.array(self.x_forward),
+        ]
         self.left_right = [
             np.array(self.q0),
             np.array(self.q_up),
@@ -128,39 +136,8 @@ class Trajectory():
 
     # Evaluate at the given time.  This was last called (dt) ago.
     def evaluate(self, t, dt):
-        ##### UP DOWN DEMO WITH PLATFORM POSITION #####
-        if t > self.desired_time * 2 * len(self.left_right):
-            return None
-
-        if self.last_time == -1:
-            self.last_time = t
-
-        delta = t - self.last_time
-
-        if delta > self.desired_time:
-            self.last_time = t
-            self.index = (self.index + 1) % len(self.left_right)
-            delta = 0
-
-        next_index = (self.index + 1) % len(self.left_right)
-
-        qdot = ((self.left_right[next_index] - self.left_right[self.index]) / self.desired_time)
-        q = self.left_right[self.index] + qdot * delta
-
-        qdot = ((self.left_right[next_index] - self.left_right[self.index]) / self.desired_time)
-        q = self.left_right[self.index] + qdot * delta
-
-        xdot = ((self.left_right_positions[next_index] - self.left_right_positions[self.index]) / self.desired_time)
-        x = self.left_right_positions[self.index] + xdot * delta
-        x = x.flatten().tolist()
-
-        ##### USE FKIN TO DETERMINE TOP PLATFORM #####
-        # x = self.KinematicChain.fkin(np.array([q[2], q[5], q[8], q[11], q[14], q[17]]), self.x0)
-        # print("---- leg lengths ---\n", np.array([q[2], q[5], q[8], q[11], q[14], q[17]]))
-        # print("---- x ----\n", x)
-
-        ##### FULL DEMO ####
-        # if t > self.desired_time * len(self.demo):
+        # ##### UP DOWN DEMO WITH PLATFORM POSITION #####
+        # if t > self.desired_time * 2 * len(self.left_right):
         #     return None
 
         # if self.last_time == -1:
@@ -170,18 +147,48 @@ class Trajectory():
 
         # if delta > self.desired_time:
         #     self.last_time = t
-        #     self.index = (self.index + 1) % len(self.demo)
+        #     self.index = (self.index + 1) % len(self.left_right)
         #     delta = 0
 
-        # next_index = (self.index + 1) % len(self.demo)
+        # next_index = (self.index + 1) % len(self.left_right)
 
-        # qdot = ((self.demo[next_index] - self.demo[self.index]) / self.desired_time)
-        # q = self.demo[self.index] + qdot * delta
+        # qdot = ((self.left_right[next_index] - self.left_right[self.index]) / self.desired_time)
+        # q = self.left_right[self.index] + qdot * delta
 
-        # # qdot = np.zeros((18, 1))
-        # # q = np.array(self.q_left)
+        # xdot = ((self.left_right_positions[next_index] - self.left_right_positions[self.index]) / self.desired_time)
+        # x = self.left_right_positions[self.index] + xdot * delta
+        # x = x.flatten().tolist()
 
-        # x = None
+        ##### USE FKIN TO DETERMINE TOP PLATFORM #####
+        # x = self.KinematicChain.fkin(np.array([q[2], q[5], q[8], q[11], q[14], q[17]]), self.x0)
+        # print("---- leg lengths ---\n", np.array([q[2], q[5], q[8], q[11], q[14], q[17]]))
+        # print("---- x ----\n", x)
+
+        #### FULL DEMO ####
+        if t > self.desired_time * len(self.demo):
+            return None
+
+        if self.last_time == -1:
+            self.last_time = t
+
+        delta = t - self.last_time
+
+        if delta > self.desired_time:
+            self.last_time = t
+            self.index = (self.index + 1) % len(self.demo)
+            delta = 0
+
+        next_index = (self.index + 1) % len(self.demo)
+
+        qdot = ((self.demo[next_index] - self.demo[self.index]) / self.desired_time)
+        q = self.demo[self.index] + qdot * delta
+
+        xdot = ((self.demo_positions[next_index] - self.demo_positions[self.index]) / self.desired_time)
+        x = self.demo_positions[self.index] + xdot * delta
+        x = x.flatten().tolist()
+
+        # qdot = np.zeros((18, 1))
+        # q = np.array(self.q_left)
 
         # Return the position and velocity as python lists.
         return (q.flatten().tolist(), qdot.flatten().tolist(), x)
