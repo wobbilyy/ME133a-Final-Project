@@ -5,7 +5,7 @@ final project
 import rclpy
 import numpy as np
 
-from math import pi, np.sin, np.cos, anp.cos, atan2, sqrt, fmod, exp
+from math import pi, sin, cos, acos, atan2, sqrt, fmod, exp
 
 # Grab the utilities
 from finalprojectcode.GeneratorNode      import GeneratorNode
