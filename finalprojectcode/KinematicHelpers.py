@@ -35,7 +35,8 @@ class KinematicHelpers():
 
 
     # Numerically compute Jacobian without derivatives. Just do J = (fkin(x) + fkin(x+q))/ dq
-    def compute_jacobian(self, epsilon=1e-6):
+    def compute_jacobian(self, q=[], epsilon=1e-6):
+        if q == []: q = self.q
         J = np.zeros((6, 6))
         X0 = self.invkin()
 
@@ -178,7 +179,7 @@ class KinematicHelpers():
 
         return J_expected
 
-    def fkin(self, xgoal):
+    def fkin(self, xgoal, qstart = []):
         '''
         Newton Raphson with invkin and invJac to find forward kinematics
         of given leg lengths
@@ -192,7 +193,8 @@ class KinematicHelpers():
         '''
 
         # Set the initial joint value guess.
-        q = self.q
+        if qstart == []: qstart = self.q
+        q = qstart
         q_0 = q
 
         # Get goal translation and rotation.
