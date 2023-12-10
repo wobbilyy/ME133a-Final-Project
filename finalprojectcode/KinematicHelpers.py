@@ -190,10 +190,10 @@ class KinematicHelpers():
         # Get goal translation and rotation.
         
         # Number of steps to try.
-        N = 100
+        N = 5
 
         # Iterate
-        for i in range(N+1):
+        for i in range(N + 1):
             # Determine where you are
             x = self.invkin(q)
             J = self.compute_jacobian(q) 
@@ -251,7 +251,6 @@ class KinematicHelpers():
             spider_q.append(leg_length - 2.4)
 
         return spider_q
-
 
     def get_leg_vectors(self, q):
         '''

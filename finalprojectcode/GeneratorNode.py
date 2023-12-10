@@ -26,6 +26,14 @@
 import rclpy
 import numpy as np
 
+from rclpy.node                 import Node
+from rclpy.qos                  import QoSProfile, DurabilityPolicy
+from rclpy.time                 import Duration
+from geometry_msgs.msg          import Point, Vector3, Quaternion
+from std_msgs.msg               import ColorRGBA
+from visualization_msgs.msg     import Marker
+from visualization_msgs.msg     import MarkerArray
+
 from asyncio            import Future
 from rclpy.node         import Node
 from sensor_msgs.msg    import JointState
@@ -54,6 +62,35 @@ class GeneratorNode(Node):
 
         # Add a publisher to send the joint commands.
         self.pub = self.create_publisher(JointState, '/joint_states', 10)
+
+        # Prepare the publisher (latching for new subscribers).
+        quality = QoSProfile(durability=DurabilityPolicy.TRANSIENT_LOCAL, depth=1)
+        self.marker_publisher = self.create_publisher(MarkerArray, '/visualization_marker_array', quality)
+
+        # Create the sphere marker.
+        self.radius = 5
+        diam                         = float(1.0)
+        self.marker                  = Marker()
+        self.marker.header.frame_id  = "world"
+        self.marker.header.stamp     = self.get_clock().now().to_msg()
+        self.marker.action           = Marker.ADD
+        self.marker.ns               = "point"
+        self.marker.id               = 1
+        self.marker.type             = Marker.MESH_RESOURCE
+        self.marker.pose.position.x = float(1.0)
+        self.marker.pose.position.y = float(1.0)
+        self.marker.pose.position.z = float(1.0)
+        self.marker.pose.orientation.x = 3.14159
+        self.marker.pose.orientation.y = 0.0
+        self.marker.pose.orientation.z = 0.0
+        self.marker.pose.orientation.w = 0.0
+        self.marker.scale            = Vector3(x = diam, y = diam, z = diam)
+        self.marker.mesh_use_embedded_materials = True
+        self.marker.mesh_resource = "package://finalprojectcode/meshes/Platform_Top.dae"
+
+        # Create the marker array message.
+        self.mark = MarkerArray()
+        self.mark.markers.append(self.marker)
 
         # Wait for a connection to happen.  This isn't necessary, but
         # means we don't start until the rest of the system is ready.
@@ -110,7 +147,7 @@ class GeneratorNode(Node):
         if desired is None:
             self.future.set_result("Trajectory has ended")
             return
-        (q, qdot) = desired
+        (q, qdot, x) = desired
 
         # Check the results.
         if not (isinstance(q, list) and isinstance(qdot, list)):
@@ -133,3 +170,10 @@ class GeneratorNode(Node):
         cmdmsg.position     = q                 # List of joint positions
         cmdmsg.velocity     = qdot              # List of joint velocities
         self.pub.publish(cmdmsg)
+
+        # publish platform top
+        self.marker.header.stamp  = now.to_msg()
+        self.marker.pose.position.x = float(x[0])
+        self.marker.pose.position.y = float(x[1])
+        self.marker.pose.position.z = float(x[2] + 2.8)
+        self.marker_publisher.publish(self.mark)

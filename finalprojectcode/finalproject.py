@@ -25,21 +25,21 @@ class Trajectory():
         # # Set up the kinematic chain object.
         r =  1.25
         height = 2.6
-        base_pos = [[ 0.25     ,  1.5       , 0],
+        self.base_pos = [[ 0.25     ,  1.5       , 0],
                     [-0.25     ,  1.5       , 0],
                     [-1.424038 , -0.533494  , 0], 
                     [-1.1174038, -0.96650635, 0], 
                     [ 1.1174038, -0.96650635, 0], 
                     [ 1.424038 , -0.533494  , 0]]
-        center_pos = [0        ,  0         , height - 0.2]
-        top_pos = [[r * np.cos(np.radians(0))  , r * np.sin(np.radians(0))  , height - 0.2],
+        self.center_pos = [0        ,  0         , height - 0.2]
+        self.top_pos = [[r * np.cos(np.radians(0))  , r * np.sin(np.radians(0))  , height - 0.2],
                    [r * np.cos(np.radians(60)) , r * np.sin(np.radians(60)) , height - 0.2],
                    [r * np.cos(np.radians(120)), r * np.sin(np.radians(120)), height - 0.2],
                    [r * np.cos(np.radians(180)), r * np.sin(np.radians(180)), height - 0.2],
                    [r * np.cos(np.radians(240)), r * np.sin(np.radians(240)), height - 0.2],
                    [r * np.cos(np.radians(300)), r * np.sin(np.radians(300)), height - 0.2]] 
 
-        self.KinematicChain = KinematicHelpers(top_pos, center_pos, base_pos)
+        self.KinematicChain = KinematicHelpers(self.top_pos, self.center_pos, self.base_pos)
 
         # # Define the various points.
         self.x0 = [0, 0, 0, np.radians(0), np.radians(0), np.radians(0)]
@@ -48,10 +48,12 @@ class Trajectory():
         self.x_up = [0, 0, 1, np.radians(0), np.radians(0), np.radians(0)]
         self.q_up = self.KinematicChain.stewart_to_spider_q(self.x_up)
 
-        self.x_right = [1, 0, 1, np.radians(15), np.radians(0), np.radians(0)]
+        # self.x_right = [1, 0, 1, np.radians(15), np.radians(0), np.radians(0)]
+        self.x_right = [1, 0, 0, np.radians(0), np.radians(0), np.radians(0)]
         self.q_right = self.KinematicChain.stewart_to_spider_q(self.x_right)
 
-        self.x_left = [-1, 0, 1, np.radians(15), np.radians(25), np.radians(0)]
+        # self.x_left = [-1, 0, 1, np.radians(15), np.radians(25), np.radians(0)]
+        self.x_left = [-1, 0, 0, np.radians(0), np.radians(0), np.radians(0)]
         self.q_left = self.KinematicChain.stewart_to_spider_q(self.x_left)
 
         self.x_back = [0, 1, 1, np.radians(-20), np.radians(0), np.radians(0)]
@@ -71,8 +73,16 @@ class Trajectory():
         self.left_right = [
             np.array(self.q0),
             np.array(self.q_up),
-            np.array(self.KinematicChain.stewart_to_spider_q([1, 0, 1, np.radians(0), np.radians(0), np.radians(0)])),
-            np.array(self.KinematicChain.stewart_to_spider_q([-1, 0, 0.5, np.radians(0), np.radians(0), np.radians(0)]))
+            # np.array(self.q_right)
+            # np.array(self.KinematicChain.stewart_to_spider_q([1, 0, 1, np.radians(0), np.radians(0), np.radians(0)])),
+            # np.array(self.KinematicChain.stewart_to_spider_q([-1, 0, 0.5, np.radians(0), np.radians(0), np.radians(0)]))
+        ]
+        self.left_right_positions = [
+            np.array(self.x0),
+            np.array(self.x_up),
+            # np.array(self.x_right)
+            # np.array(self.KinematicChain.stewart_to_spider_q([1, 0, 1, np.radians(0), np.radians(0), np.radians(0)])),
+            # np.array(self.KinematicChain.stewart_to_spider_q([-1, 0, 0.5, np.radians(0), np.radians(0), np.radians(0)]))
         ]
         self.last_time = -1
         self.desired_time = 2
@@ -80,6 +90,9 @@ class Trajectory():
 
         # Initialize the current/starting joint position.
         self._lambda = 20
+
+        # self.leg = input("Which leg would you like to extend?")
+        # self.leg_length = ("What length would you like to extend this leg to?")
 
     # Declare the joint names.
     def jointnames(self):
@@ -111,6 +124,16 @@ class Trajectory():
         qdot = ((self.left_right[next_index] - self.left_right[self.index]) / self.desired_time)
         q = self.left_right[self.index] + qdot * delta
 
+        qdot = ((self.left_right[next_index] - self.left_right[self.index]) / self.desired_time)
+        q = self.left_right[self.index] + qdot * delta
+
+        xdot = ((self.left_right_positions[next_index] - self.left_right_positions[self.index]) / self.desired_time)
+        x = self.left_right_positions[self.index] + xdot * delta
+
+        # x = self.KinematicChain.fkin(np.array([q[2], q[5], q[8], q[11], q[14], q[17]]), self.x0)
+        # print("----\n", np.array([q[2], q[5], q[8], q[11], q[14], q[17]]))
+        # print("----\n", x)
+
         # if t > self.desired_time * len(self.demo):
         #     return None
 
@@ -133,7 +156,7 @@ class Trajectory():
         # q = np.array(self.q_left)
 
         # Return the position and velocity as python lists.
-        return (q.flatten().tolist(), qdot.flatten().tolist())
+        return (q.flatten().tolist(), qdot.flatten().tolist(), x.flatten().tolist())
 
 
 #
