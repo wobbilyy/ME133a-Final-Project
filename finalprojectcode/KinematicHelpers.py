@@ -239,7 +239,9 @@ class KinematicHelpers():
 
             pitch = np.arctan2(dz,r) # Rotation about Y 
             roll =  np.arctan2(-dx/r,dy/r) # Rotation about X
-            spider_q.append([pitch, roll, leg_length])
+            spider_q.append(pitch)
+            spider_q.append(roll)
+            spider_q.append(leg_length)
 
         return spider_q
 
@@ -255,7 +257,7 @@ class KinematicHelpers():
                                         l6x, l6y, l6z]
         '''
 
-        Tx = q_start[0]-self.center_pos[0]
+        Tx = q[0]-self.center_pos[0]
         Ty = q[1]-self.center_pos[1]
         Tz = q[2]-self.center_pos[2]
         psi = q[3]
@@ -272,7 +274,7 @@ class KinematicHelpers():
             b = np.array(self.base_pos[i]).transpose()               # Base position of given leg
             Rb = Rotz(psi) @ Roty(theta) @ Rotx(phi)            # Rotation of the top plate
             l = T + Rb @ p - b                                  # Vector of leg
-            L.append(float(l[0]), float(l[1]), float(l[2]))
+            L.append([float(l[0]), float(l[1]), float(l[2])])
         
         return L
 
@@ -313,4 +315,31 @@ if __name__ == "__main__":
     q = K.fkin(test_x, q_start)
     print(f"For leg lengths {test_x}: found q = {q}")
     print(f"Leg lengths given q: {K.invkin(q)}")
+
+
+
+    ########### TEST: Actual stewart dimensions
+    # Initialize kinematic chain helper object
+    base_pos = [[0.25, 1.5, 0.3],
+                [-0.25, 1.5, 0.3],
+                [-1.424038, -0.533494, 0.3], 
+                [-1.1174038, -0.96650635, 0.3], 
+                [1.1174038, -0.966506, 0.3], 
+                [1.424038, -0.533494, 0.3]]
+    center_pos = [0,0,3]
+    r = 0.125
+    height = 3
+    top_pos = [[0, r, height - 0.2],
+            [r * np.cos(np.pi/180.0*(30)),  r * np.sin(np.pi/180.0*(30)), height - 0.2],
+            [r * np.cos(np.pi/180.0*(30)),  r * np.sin(np.pi/180.0*(-30)), height - 0.2],
+            [r * np.cos(np.pi/180.0*(150)),  r * np.sin(np.pi/180.0*(30)), height - 0.2],
+            [r * np.cos(np.pi/180.0*(150)),  r * np.sin(np.pi/180.0*(-30)), height - 0.2],
+            [0, -r, height - 0.2]]
+    q_start = [0,0,0,0,0,0,0]
+    K = KinematicHelpers(top_pos, center_pos, base_pos)
+    # What are our current leg lengths?
+    X = K.invkin(q_start)
+    print(f"ACTUAL: Starting leg lengths: {X}")
+    print(f"For leg lengths {X}: found q = {q}")
+    print(f"Spider q: {K.stewart_to_spider_q(q)}")
     
