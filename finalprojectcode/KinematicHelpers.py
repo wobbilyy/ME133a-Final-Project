@@ -279,7 +279,7 @@ class KinematicHelpers():
                         self.top_pos[i][2]-self.center_pos[2]]).transpose()  # Vector between point on top and center of top
             b = np.array(self.base_pos[i]).transpose()               # Base position of given leg
             Rb = Rotz(psi) @ Roty(theta) @ Rotx(phi)            # Rotation of the top plate
-            l = -(T + Rb @ p - b)                                  # Vector of leg
+            l = (T + Rb @ p - b)                                  # Vector of leg
             L.append([float(l[0]), float(l[1]), float(l[2])])
         
         return L
@@ -337,14 +337,13 @@ if __name__ == "__main__":
     height = 2.6
     center_pos = [0,0,height-0.2]
     top_pos = [
-            [r * np.cos(np.pi/180*(0)), r * np.cos(np.pi/180*(0)), height - 0.2],
-            [r * np.cos(np.pi/180*(60)), r * np.cos(np.pi/180*(60)), height - 0.2],
-            [r * np.cos(np.pi/180*(120)), r * np.cos(np.pi/180*(120)), height - 0.2],
-            [r * np.cos(np.pi/180*(180)), r * np.cos(np.pi/180*(180)), height - 0.2],
-            [r * np.cos(np.pi/180*(240)), r * np.cos(np.pi/180*(240)), height - 0.2],
-            [r * np.cos(np.pi/180*(300)), r * np.cos(np.pi/180*(300)), height - 0.2]
+            [r * np.cos(np.pi/180*(0)), r * np.sin(np.pi/180*(0)), height - 0.2],
+            [r * np.cos(np.pi/180*(60)), r * np.sin(np.pi/180*(60)), height - 0.2],
+            [r * np.cos(np.pi/180*(120)), r * np.sin(np.pi/180*(120)), height - 0.2],
+            [r * np.cos(np.pi/180*(180)), r * np.sin(np.pi/180*(180)), height - 0.2],
+            [r * np.cos(np.pi/180*(240)), r * np.sin(np.pi/180*(240)), height - 0.2],
+            [r * np.cos(np.pi/180*(300)), r * np.sin(np.pi/180*(300)), height - 0.2]
             ]   
-            
     q_start = [0,0,0,0,0,0,0]
     K = KinematicHelpers(top_pos, center_pos, base_pos)
     # What are our current leg lengths?
@@ -352,4 +351,7 @@ if __name__ == "__main__":
     print(f"ACTUAL: Starting leg lengths: {X}")
     print(f"For leg lengths {X}: found q = {q}")
     print(f"Spider q: {K.stewart_to_spider_q(q)}")
+    print(top_pos[0][0]-base_pos[0][0])
+    print(top_pos[0][1]-base_pos[0][1])
+    print(top_pos[0][2]-base_pos[0][2])
     
