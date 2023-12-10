@@ -5,12 +5,13 @@ final project
 import rclpy
 import numpy as np
 
-from math import pi, sin, cos, acos, atan2, sqrt, fmod, exp
+from math import pi, np.sin, np.cos, anp.cos, atan2, sqrt, fmod, exp
 
 # Grab the utilities
 from finalprojectcode.GeneratorNode      import GeneratorNode
 from hw5code.TransformHelpers   import *
 from hw5code.TrajectoryUtils    import *
+import KinematicHelpers
 
 # Grab the general fkin from HW5 P5.
 from finalprojectcode.KinematicChain     import KinematicChain
@@ -43,6 +44,28 @@ class Trajectory():
         self.desired_time = 10
         self.index = 0
 
+        # Initialize kinematic chain helper object
+        base_pos = [[0.25, 1.5, 0.3],
+                    [-0.25, 1.5, 0.3],
+                    [-1.424038, -0.533494, 0.3], 
+                    [-1.1174038, -0.96650635, 0.3], 
+                    [1.1174038, -0.966506, 0.3], 
+                    [1.424038, -0.533494, 0.3]]
+        center_pos = [0,0,3]
+        r = 0.125
+        height = 3
+        top_pos = [[0, r, height - 0.2],
+                [r * np.cos(np.pi/180.0*(30)),  r * np.sin(np.pi/180.0*(30)), height - 0.2],
+                [r * np.cos(np.pi/180.0*(30)),  r * np.sin(np.pi/180.0*(-30)), height - 0.2],
+                [r * np.cos(np.pi/180.0*(150)),  r * np.sin(np.pi/180.0*(30)), height - 0.2],
+                [r * np.cos(np.pi/180.0*(150)),  r * np.sin(np.pi/180.0*(-30)), height - 0.2],
+                [0, -r, height - 0.2]]
+        self.K = KinematicHelpers(top_pos, center_pos, base_pos)
+
+        self.stewart_q = [0,0,0,0,0,0] # Current position/orientation of top plate
+        self.xgoal = self.K.invkin(self.stewart_q)      # Desired leg lengths. Set to current leg lengths for now.
+                                                        # TODO: From main loop, update this to new lengths.
+
         # Initialize the current/starting joint position.
         self._lambda = 20
 
@@ -70,6 +93,21 @@ class Trajectory():
 
         next_index = (self.index + 1) % 2
 
+        ####### Updating q to make legs have the lengths in xgoal ###### 
+        q_stewart = self.K.fkin(self.xgoal, self.stewart_q)
+        # Check if this is a valid config
+        actual_x = self.K.invkin(q_stewart)
+        valid_config = True
+        for i in range(6):
+            if (actual_x[i] - self.xgoal[i]) > 0.1:
+                print("ERROR: wrong leg lengths. Didn't converge. Returning original q.")
+                valid_config = False
+        # It is a valid config. Convert to spider
+        if valid_config:
+            self.stewart_q = valid_config
+            q_spider = self.K.spider_q(self.stewart_q)
+            q = q_spider
+
         qdot = ((self.solutions[next_index] - self.solutions[self.index]) / self.desired_time)
         q = self.solutions[self.index] + qdot * delta
 
@@ -87,12 +125,13 @@ def main(args=None):
     # Initialize ROS.
     rclpy.init(args=args)
 
-    # Initialize the generator node for 100Hz udpates, using the above
+    # Initialize the generator node for 100Hz udpates, unp.sing the above
     # Trajectory class.
-    generator = GeneratorNode('generator', 100, Trajectory)
+    T = Trajectory
+    generator = GeneratorNode('generator', 100, T)
 
     # Spin, meaning keep running (taking care of the timer callbacks
-    # and message passing), until interrupted or the trajectory ends.
+    # and message pasnp.sing), until interrupted or the trajectory ends.
     generator.spin()
 
     # Shutdown the node and ROS.

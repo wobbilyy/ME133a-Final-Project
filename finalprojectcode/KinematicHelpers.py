@@ -247,12 +247,12 @@ class KinematicHelpers():
     def get_leg_vectors(self,q):
         '''
         Given q = [Tx, Ty, Tz, psi, theta, phi],
-        get_leg_vectors(q) returns x = [[l1x, l1y, l1z], 
-                                        [l2x, l2y, l2z],
-                                        [l3x, l3y, l3z],
-                                        [l4x, l4y, l4z],
-                                        [l5x, l5y, l5z],
-                                        [l6x, l6y, l6z]]
+        get_leg_vectors(q) returns x = [l1x, l1y, l1z, 
+                                        l2x, l2y, l2z,
+                                        l3x, l3y, l3z,
+                                        l4x, l4y, l4z,
+                                        l5x, l5y, l5z,
+                                        l6x, l6y, l6z]
         '''
 
         Tx = q_start[0]-self.center_pos[0]
@@ -272,7 +272,7 @@ class KinematicHelpers():
             b = np.array(self.base_pos[i]).transpose()               # Base position of given leg
             Rb = Rotz(psi) @ Roty(theta) @ Rotx(phi)            # Rotation of the top plate
             l = T + Rb @ p - b                                  # Vector of leg
-            L.append([float(l[0]), float(l[1]), float(l[2])])
+            L.append(float(l[0]), float(l[1]), float(l[2]))
         
         return L
 
@@ -289,7 +289,7 @@ if __name__ == "__main__":
                [-21.2132,-21.2132,0],
                [-7.7646,-28.9778,0],
                [28.9778,-7.7646,0]]
-    center_pos = [0,0,40]
+    center_pos = [0,0,3]
     top_pos = [[14.1421,14.1421,40],
                 [5.1764,19.3185,40],
                 [-19.3185,5.1764,40],
@@ -304,6 +304,12 @@ if __name__ == "__main__":
 
     test_x = [55.8558,62.5313,52.7436,55.1457,44.7972,51.9910]
     # There are a variety of valid positions for this.
+    q = K.fkin(test_x, q_start)
+    print(f"For leg lengths {test_x}: found q = {q}")
+    print(f"Leg lengths given q: {K.invkin(q)}")
+
+    test_x = [43.136649159850144, 43.136661408713586, 43.13662993709639, 43.137856878848304, 43.136661408713586, 43.136649159850144]
+    # Should go back to starting position
     q = K.fkin(test_x, q_start)
     print(f"For leg lengths {test_x}: found q = {q}")
     print(f"Leg lengths given q: {K.invkin(q)}")
