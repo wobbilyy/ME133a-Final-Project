@@ -263,9 +263,9 @@ class KinematicHelpers():
                                         l6x, l6y, l6z]
         '''
 
-        Tx = q[0]-self.center_pos[0]
-        Ty = q[1]-self.center_pos[1]
-        Tz = q[2]-self.center_pos[2]
+        Tx = q[0]+self.center_pos[0]
+        Ty = q[1]+self.center_pos[1]
+        Tz = q[2]+self.center_pos[2]
         psi = q[3]
         theta = q[4]
         phi = q[5]
@@ -321,8 +321,6 @@ if __name__ == "__main__":
     q = K.fkin(test_x, q_start)
     print(f"For leg lengths {test_x}: found q = {q}")
     print(f"Leg lengths given q: {K.invkin(q)}")
-    print(f"Spider q: {K.stewart_to_spider_q(q)}")
-
 
 
     ########### TEST: Actual stewart dimensions
