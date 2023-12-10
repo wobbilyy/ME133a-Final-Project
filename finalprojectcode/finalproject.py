@@ -45,21 +45,23 @@ class Trajectory():
         self.index = 0
 
         # Initialize kinematic chain helper object
-        base_pos = [[0.25, 1.5, 0.3],
-                    [-0.25, 1.5, 0.3],
-                    [-1.424038, -0.533494, 0.3], 
-                    [-1.1174038, -0.96650635, 0.3], 
-                    [1.1174038, -0.966506, 0.3], 
-                    [1.424038, -0.533494, 0.3]]
-        center_pos = [0,0,3]
-        r = 0.125
-        height = 3
-        top_pos = [[0, r, height - 0.2],
-                [r * np.cos(np.pi/180.0*(30)),  r * np.sin(np.pi/180.0*(30)), height - 0.2],
-                [r * np.cos(np.pi/180.0*(30)),  r * np.sin(np.pi/180.0*(-30)), height - 0.2],
-                [r * np.cos(np.pi/180.0*(150)),  r * np.sin(np.pi/180.0*(30)), height - 0.2],
-                [r * np.cos(np.pi/180.0*(150)),  r * np.sin(np.pi/180.0*(-30)), height - 0.2],
-                [0, -r, height - 0.2]]
+        base_pos = [[0.25, 1.5, 0],
+                    [-0.25, 1.5, 0],
+                    [-1.424038, -0.533494, 0], 
+                    [-1.1174038, -0.96650635, 0], 
+                    [1.1174038, -0.966506, 0], 
+                    [1.424038, -0.533494, 0]]
+        r =  1.25
+        height = 2.6
+        center_pos = [0,0,height-0.2]
+        top_pos = [
+                [r * np.cos(np.pi/180*(0)), r * np.cos(np.pi/180*(0)), height - 0.2],
+                [r * np.cos(np.pi/180*(60)), r * np.cos(np.pi/180*(60)), height - 0.2],
+                [r * np.cos(np.pi/180*(120)), r * np.cos(np.pi/180*(120)), height - 0.2],
+                [r * np.cos(np.pi/180*(180)), r * np.cos(np.pi/180*(180)), height - 0.2],
+                [r * np.cos(np.pi/180*(240)), r * np.cos(np.pi/180*(240)), height - 0.2],
+                [r * np.cos(np.pi/180*(300)), r * np.cos(np.pi/180*(300)), height - 0.2]
+                ]   
         self.K = KinematicHelpers(top_pos, center_pos, base_pos)
 
         self.stewart_q = [0,0,0,0,0,0] # Current position/orientation of top plate
