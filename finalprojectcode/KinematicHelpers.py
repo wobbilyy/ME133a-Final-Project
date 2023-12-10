@@ -1,7 +1,8 @@
 import numpy as np
 import math
-from TransformHelpers import Rotx, Roty, Rotz
 from sympy import symbols, cos, sin, diff
+
+from finalprojectcode.TransformHelpers import Rotx, Roty, Rotz
 
 # Let q = [Tx, Ty, Tz, psi, theta, phi]
 # x = [L1, L2, L3, L4, L5]
@@ -45,132 +46,132 @@ class KinematicHelpers():
 
         return J
 
-    ### Why is this not working??? Entries completely mismatch compute_jacobian
-    ### Not being used currently.
-    def invJac(self, q):
-        '''Given Given q = [Tx, Ty, Tz, psi, theta, phi],
-        Jaq(q) returns J(q) s.t. J(q)*q'= dx/dt'''
-        Tx = q[0]
-        Ty = q[1]
-        Tz = q[2]
-        psi = q[3]
-        theta = q[4]
-        phi = q[5]
+    # ### Why is this not working??? Entries completely mismatch compute_jacobian
+    # ### Not being used currently.
+    # def invJac(self, q):
+    #     '''Given Given q = [Tx, Ty, Tz, psi, theta, phi],
+    #     Jaq(q) returns J(q) s.t. J(q)*q'= dx/dt'''
+    #     Tx = q[0]
+    #     Ty = q[1]
+    #     Tz = q[2]
+    #     psi = q[3]
+    #     theta = q[4]
+    #     phi = q[5]
 
-        X = self.invkin(q)
-        J = [] # Fill below
+    #     X = self.invkin(q)
+    #     J = [] # Fill below
 
 
-        J_expected = []
-        psi_0 = q[3]
-        theta_0 = q[4]
-        phi_0 = q[5]
+    #     J_expected = []
+    #     psi_0 = q[3]
+    #     theta_0 = q[4]
+    #     phi_0 = q[5]
 
-        for i in range(6):
-            L = X[i]
-            p = np.array([self.top_pos[i][0]-self.center_pos[0], 
-                        self.top_pos[i][1]-self.center_pos[1],
-                        self.top_pos[i][2]-self.center_pos[2]]).transpose()  # Vector between point on top and center of top
+    #     for i in range(6):
+    #         L = X[i]
+    #         p = np.array([self.top_pos[i][0]-self.center_pos[0], 
+    #                     self.top_pos[i][1]-self.center_pos[1],
+    #                     self.top_pos[i][2]-self.center_pos[2]]).transpose()  # Vector between point on top and center of top
 
-            ######################################## HAND-CALCULATED DERIVATIVE ####################################
-            dlx_dphi = (np.sin(psi)*np.sin(phi)+np.cos(psi)*np.sin(theta)*np.cos(phi))*p[1] 
-            + (np.sin(psi)*np.cos(phi)-np.cos(psi)*np.sin(theta)*np.sin(phi))*p[2]
+    #         ######################################## HAND-CALCULATED DERIVATIVE ####################################
+    #         dlx_dphi = (np.sin(psi)*np.sin(phi)+np.cos(psi)*np.sin(theta)*np.cos(phi))*p[1] 
+    #         + (np.sin(psi)*np.cos(phi)-np.cos(psi)*np.sin(theta)*np.sin(phi))*p[2]
             
-            dlx_dtheta = (-np.cos(psi)*np.sin(theta))*p[0]
-            + (np.cos(psi)*np.cos(theta)*np.sin(phi))*p[1]
-            + (np.cos(psi)*np.cos(theta)*np.cos(phi))*p[2]
+    #         dlx_dtheta = (-np.cos(psi)*np.sin(theta))*p[0]
+    #         + (np.cos(psi)*np.cos(theta)*np.sin(phi))*p[1]
+    #         + (np.cos(psi)*np.cos(theta)*np.cos(phi))*p[2]
 
-            dlx_dpsi = (-np.sin(psi)*np.cos(theta))*p[0]
-            + (-np.cos(psi)*np.cos(phi)-np.sin(psi)*np.sin(theta)*np.sin(phi))*p[1]
-            + (np.cos(psi)*np.sin(phi)-np.sin(psi)*np.sin(theta)*np.cos(phi))*p[2]
+    #         dlx_dpsi = (-np.sin(psi)*np.cos(theta))*p[0]
+    #         + (-np.cos(psi)*np.cos(phi)-np.sin(psi)*np.sin(theta)*np.sin(phi))*p[1]
+    #         + (np.cos(psi)*np.sin(phi)-np.sin(psi)*np.sin(theta)*np.cos(phi))*p[2]
 
-            dly_dphi = (-np.cos(psi)*np.sin(phi)+np.sin(psi)*np.sin(theta)*np.cos(phi))*p[1]
-            + (-np.cos(psi)*np.cos(phi)-np.sin(psi)*np.sin(theta)*np.sin(psi))*p[2]
+    #         dly_dphi = (-np.cos(psi)*np.sin(phi)+np.sin(psi)*np.sin(theta)*np.cos(phi))*p[1]
+    #         + (-np.cos(psi)*np.cos(phi)-np.sin(psi)*np.sin(theta)*np.sin(psi))*p[2]
 
-            dly_dtheta = (-np.sin(psi)*np.sin(theta))*p[0]
-            +(np.sin(psi)*np.cos(theta)*np.sin(phi))*p[1]
-            +(np.sin(psi)*np.cos(theta)*np.cos(phi))*p[2]
+    #         dly_dtheta = (-np.sin(psi)*np.sin(theta))*p[0]
+    #         +(np.sin(psi)*np.cos(theta)*np.sin(phi))*p[1]
+    #         +(np.sin(psi)*np.cos(theta)*np.cos(phi))*p[2]
 
-            dly_dpsi = (np.cos(psi)*np.cos(theta))*p[0]
-            +(-np.sin(psi)*np.cos(phi)+np.cos(psi)*np.sin(theta)*np.sin(psi))*p[1]
-            +(np.sin(psi)*np.sin(phi)+np.cos(psi)*np.sin(theta)*np.cos(phi))*p[2]
+    #         dly_dpsi = (np.cos(psi)*np.cos(theta))*p[0]
+    #         +(-np.sin(psi)*np.cos(phi)+np.cos(psi)*np.sin(theta)*np.sin(psi))*p[1]
+    #         +(np.sin(psi)*np.sin(phi)+np.cos(psi)*np.sin(theta)*np.cos(phi))*p[2]
 
-            dlz_dphi = (np.cos(theta)*np.cos(phi))*p[1]
-            +(-np.cos(theta)*np.sin(phi))*p[2]
+    #         dlz_dphi = (np.cos(theta)*np.cos(phi))*p[1]
+    #         +(-np.cos(theta)*np.sin(phi))*p[2]
 
-            dlz_dtheta = (-np.cos(theta))*p[0]
-            +(-np.sin(theta)*np.sin(phi))*p[1]
-            +(-np.sin(theta)*np.cos(phi))*p[2]
+    #         dlz_dtheta = (-np.cos(theta))*p[0]
+    #         +(-np.sin(theta)*np.sin(phi))*p[1]
+    #         +(-np.sin(theta)*np.cos(phi))*p[2]
 
-            dlz_dpsi = 0
+    #         dlz_dpsi = 0
 
-             # Total partial derivatives
-            dl_dphi = dlx_dphi + dly_dphi + dlz_dphi
-            dl_dtheta = dlx_dtheta + dly_dtheta + dlz_dtheta
-            dl_dpsi = dlx_dpsi + dly_dpsi + dlz_dpsi
-            J.append(np.array([1/L, 1/L, 1/L, dl_dpsi/L, dl_dtheta/L, dl_dphi/L]))
+    #          # Total partial derivatives
+    #         dl_dphi = dlx_dphi + dly_dphi + dlz_dphi
+    #         dl_dtheta = dlx_dtheta + dly_dtheta + dlz_dtheta
+    #         dl_dpsi = dlx_dpsi + dly_dpsi + dlz_dpsi
+    #         J.append(np.array([1/L, 1/L, 1/L, dl_dpsi/L, dl_dtheta/L, dl_dphi/L]))
 
             
-            ######################################## COMPUTER-CALCULATED DERIVATIVE ####################################
-            psi_1, theta_1, phi_1 = symbols('psi_1 theta_1 phi_1')
-            cos_psi = cos(psi_1)
-            sin_psi = sin(psi_1)
-            cos_theta = cos(theta_1)
-            sin_theta = sin(theta_1)
-            cos_phi = cos(phi_1)
-            sin_phi = sin(phi_1)
+    #         ######################################## COMPUTER-CALCULATED DERIVATIVE ####################################
+    #         psi_1, theta_1, phi_1 = symbols('psi_1 theta_1 phi_1')
+    #         cos_psi = cos(psi_1)
+    #         sin_psi = sin(psi_1)
+    #         cos_theta = cos(theta_1)
+    #         sin_theta = sin(theta_1)
+    #         cos_phi = cos(phi_1)
+    #         sin_phi = sin(phi_1)
             
-            R_matrix = [p[0]*(cos_psi*cos_theta) + p[1]*(-sin_psi*cos_phi + cos_psi*sin_theta*sin_phi) + p[2]*(sin_psi*sin_phi + cos_psi*sin_theta*cos_phi), 
-                    p[0]*(sin_psi*cos_theta) + p[1]*(cos_psi*cos_phi + sin_psi*sin_theta*sin_phi) + p[2]*(-cos_psi*sin_phi + sin_psi*sin_theta*cos_phi), 
-                    p[0]*-sin_theta + p[1]*(cos_theta*sin_phi) + p[2]*(cos_theta*cos_phi)]
-            l_i = R_matrix
+    #         R_matrix = [p[0]*(cos_psi*cos_theta) + p[1]*(-sin_psi*cos_phi + cos_psi*sin_theta*sin_phi) + p[2]*(sin_psi*sin_phi + cos_psi*sin_theta*cos_phi), 
+    #                 p[0]*(sin_psi*cos_theta) + p[1]*(cos_psi*cos_phi + sin_psi*sin_theta*sin_phi) + p[2]*(-cos_psi*sin_phi + sin_psi*sin_theta*cos_phi), 
+    #                 p[0]*-sin_theta + p[1]*(cos_theta*sin_phi) + p[2]*(cos_theta*cos_phi)]
+    #         l_i = R_matrix
 
-            subs_dict = {phi_1: phi_0, theta_1: theta_0, psi_1: psi_0}
+    #         subs_dict = {phi_1: phi_0, theta_1: theta_0, psi_1: psi_0}
 
-            dlx_dphi_1 = diff(l_i[0], phi_1).subs(subs_dict)
+    #         dlx_dphi_1 = diff(l_i[0], phi_1).subs(subs_dict)
             
-            dlx_dtheta_1 = diff(l_i[0], theta_1).subs(subs_dict)
+    #         dlx_dtheta_1 = diff(l_i[0], theta_1).subs(subs_dict)
 
-            dlx_dpsi_1 = diff(l_i[0], psi_1).subs(subs_dict)
+    #         dlx_dpsi_1 = diff(l_i[0], psi_1).subs(subs_dict)
 
-            dly_dphi_1 = diff(l_i[1], phi_1).subs(subs_dict)
+    #         dly_dphi_1 = diff(l_i[1], phi_1).subs(subs_dict)
 
-            dly_dtheta_1 = diff(l_i[1], theta_1).subs(subs_dict)
+    #         dly_dtheta_1 = diff(l_i[1], theta_1).subs(subs_dict)
 
-            dly_dpsi_1 = diff(l_i[1], psi_1).subs(subs_dict)
+    #         dly_dpsi_1 = diff(l_i[1], psi_1).subs(subs_dict)
 
-            dlz_dphi_1 = diff(l_i[2], phi_1).subs(subs_dict)
+    #         dlz_dphi_1 = diff(l_i[2], phi_1).subs(subs_dict)
             
-            dlz_dtheta_1 = diff(l_i[2], theta_1).subs(subs_dict)
+    #         dlz_dtheta_1 = diff(l_i[2], theta_1).subs(subs_dict)
 
-            dlz_dpsi_1 = diff(l_i[2], psi_1).subs(subs_dict)
+    #         dlz_dpsi_1 = diff(l_i[2], psi_1).subs(subs_dict)
 
-            # Total partial derivatives
-            dl_dphi_1 = dlx_dphi_1 + dly_dphi_1 + dlz_dphi_1
-            dl_dtheta_1 = dlx_dtheta_1 + dly_dtheta_1 + dlz_dtheta_1
-            dl_dpsi_1 = dlx_dpsi_1 + dly_dpsi_1 + dlz_dpsi_1
-            J_expected.append(np.array([1/L, 1/L, 1/L, float(dl_dpsi_1/L), float(dl_dtheta_1/L), float(dl_dphi_1/L)]))
+    #         # Total partial derivatives
+    #         dl_dphi_1 = dlx_dphi_1 + dly_dphi_1 + dlz_dphi_1
+    #         dl_dtheta_1 = dlx_dtheta_1 + dly_dtheta_1 + dlz_dtheta_1
+    #         dl_dpsi_1 = dlx_dpsi_1 + dly_dpsi_1 + dlz_dpsi_1
+    #         J_expected.append(np.array([1/L, 1/L, 1/L, float(dl_dpsi_1/L), float(dl_dtheta_1/L), float(dl_dphi_1/L)]))
             
         
-        '''Debugging of derivatives of fkin matrix
-        print("JACOBIAN =======================")
-        s = [[str(e) for e in row] for row in J]
-        lens = [max(map(len, col)) for col in zip(*s)]
-        fmt = '\t'.join('{{:{}}}'.format(x) for x in lens)
-        table = [fmt.format(*row) for row in s]
-        print('\n'.join(table))
+    #     '''Debugging of derivatives of fkin matrix
+    #     print("JACOBIAN =======================")
+    #     s = [[str(e) for e in row] for row in J]
+    #     lens = [max(map(len, col)) for col in zip(*s)]
+    #     fmt = '\t'.join('{{:{}}}'.format(x) for x in lens)
+    #     table = [fmt.format(*row) for row in s]
+    #     print('\n'.join(table))
 
 
-        print("OTHER JACOBIAN =======================")
-        s = [[str(e) for e in row] for row in J_expected]
-        lens = [max(map(len, col)) for col in zip(*s)]
-        fmt = '\t'.join('{{:{}}}'.format(x) for x in lens)
-        table = [fmt.format(*row) for row in s]
-        print('\n'.join(table))
-        '''
+    #     print("OTHER JACOBIAN =======================")
+    #     s = [[str(e) for e in row] for row in J_expected]
+    #     lens = [max(map(len, col)) for col in zip(*s)]
+    #     fmt = '\t'.join('{{:{}}}'.format(x) for x in lens)
+    #     table = [fmt.format(*row) for row in s]
+    #     print('\n'.join(table))
+    #     '''
         
 
-        return J_expected
+    #     return J_expected
 
     def fkin(self, xgoal, qstart):
         '''
@@ -232,32 +233,39 @@ class KinematicHelpers():
             leg = leg_vectors[i]
             leg_length = leg_lengths[i]
             R = np.sqrt(leg[0]**2 + leg[1]**2 + leg[2]**2)
-            dx = leg[0]/R
-            dy = leg[1]/R
-            dz = leg[2]/R
+            dx = leg[1]/R
+            dy = leg[2]/R
+            dz = leg[0]/R
             r = np.sqrt(dx**2 + dy**2)
 
             pitch = np.arctan2(dz,r) # Rotation about Y 
             roll =  np.arctan2(-dx/r,dy/r) # Rotation about X
-            spider_q.append([pitch, roll, leg_length])
+
+            # # Let's check. Do this pitch and roll work out?
+            # p_0 = (np.array([0,0,R]).transpose())
+            # apparent_leg = Rotx(roll) @ Roty(pitch) @ p_0
+            # print(f"Apparent leg: {apparent_leg} vs actual leg: {leg}")
+
+            spider_q.append(pitch)
+            spider_q.append(roll)
+            spider_q.append(leg_length - 2.4)
 
         return spider_q
 
 
-    def get_leg_vectors(self,q):
+    def get_leg_vectors(self, q):
         '''
         Given q = [Tx, Ty, Tz, psi, theta, phi],
-        get_leg_vectors(q) returns x = [[l1x, l1y, l1z], 
-                                        [l2x, l2y, l2z],
-                                        [l3x, l3y, l3z],
-                                        [l4x, l4y, l4z],
-                                        [l5x, l5y, l5z],
-                                        [l6x, l6y, l6z]]
+        get_leg_vectors(q) returns x = [l1x, l1y, l1z, 
+                                        l2x, l2y, l2z,
+                                        l3x, l3y, l3z,
+                                        l4x, l4y, l4z,
+                                        l5x, l5y, l5z,
+                                        l6x, l6y, l6z]
         '''
-
-        Tx = q_start[0]-self.center_pos[0]
-        Ty = q[1]-self.center_pos[1]
-        Tz = q[2]-self.center_pos[2]
+        Tx = q[0] + self.center_pos[0]
+        Ty = q[1] + self.center_pos[1]
+        Tz = q[2] + self.center_pos[2]
         psi = q[3]
         theta = q[4]
         phi = q[5]
@@ -266,12 +274,12 @@ class KinematicHelpers():
 
         for i in range(6):
             T = np.array([Tx,Ty,Tz]).transpose()                # Translation of the center of top
-            p = np.array([self.top_pos[i][0]-self.center_pos[0], 
-                        self.top_pos[i][1]-self.center_pos[1],
-                        self.top_pos[i][2]-self.center_pos[2]]).transpose()  # Vector between point on top and center of top
+            p = np.array([self.top_pos[i][0] - self.center_pos[0], 
+                          self.top_pos[i][1] - self.center_pos[1],
+                          self.top_pos[i][2] - self.center_pos[2]]).transpose()  # Vector between point on top and center of top
             b = np.array(self.base_pos[i]).transpose()               # Base position of given leg
-            Rb = Rotz(psi) @ Roty(theta) @ Rotx(phi)            # Rotation of the top plate
-            l = T + Rb @ p - b                                  # Vector of leg
+            Rb = Rotx(psi) @ Roty(theta) @ Rotz(phi)            # Rotation of the top plate
+            l = (T + Rb @ (p - b))                                # Vector of leg
             L.append([float(l[0]), float(l[1]), float(l[2])])
         
         return L
@@ -307,4 +315,46 @@ if __name__ == "__main__":
     q = K.fkin(test_x, q_start)
     print(f"For leg lengths {test_x}: found q = {q}")
     print(f"Leg lengths given q: {K.invkin(q)}")
+
+    test_x = [43.136649159850144, 43.136661408713586, 43.13662993709639, 43.137856878848304, 43.136661408713586, 43.136649159850144]
+    # Should go back to starting position
+    q = K.fkin(test_x, q_start)
+    print(f"For leg lengths {test_x}: found q = {q}")
+    print(f"Leg lengths given q: {K.invkin(q)}")
+    print(f"Spider q: {K.stewart_to_spider_q(q)}")
+
+
+
+    ########### TEST: Actual stewart dimensions
+    # Initialize kinematic chain helper object
+    r =  1.25
+    height = 2.6
+    base_pos = [[0.25, 1.5, 0],
+                [-0.25, 1.5, 0],
+                [-1.424038, -0.533494, 0], 
+                [-1.1174038, -0.96650635, 0], 
+                [1.1174038, -0.966506, 0], 
+                [1.424038, -0.533494, 0]]
+    center_pos = [0,0,height-0.2]
+    top_pos = [
+            [r * np.cos(np.pi/180*(0)),   r * np.sin(np.pi/180*(0)),   height - 0.2],
+            [r * np.cos(np.pi/180*(60)),  r * np.sin(np.pi/180*(60)),  height - 0.2],
+            [r * np.cos(np.pi/180*(120)), r * np.sin(np.pi/180*(120)), height - 0.2],
+            [r * np.cos(np.pi/180*(180)), r * np.sin(np.pi/180*(180)), height - 0.2],
+            [r * np.cos(np.pi/180*(240)), r * np.sin(np.pi/180*(240)), height - 0.2],
+            [r * np.cos(np.pi/180*(300)), r * np.sin(np.pi/180*(300)), height - 0.2]
+            ]   
+    q_start = [0,0,0,0,0,0,0]
+    
+    K = KinematicHelpers(top_pos, center_pos, base_pos)
+    
+    # What are our current leg lengths?
+    X = K.invkin(q_start)
+    # print(f"ACTUAL: Starting leg lengths: {X}")
+    # print(f"For leg lengths {X}: found q = {q}")
+    print(f"Spider q: {K.stewart_to_spider_q(q)}")
+    
+    # print(top_pos[0][0]-base_pos[0][0])
+    # print(top_pos[0][1]-base_pos[0][1])
+    # print(top_pos[0][2]-base_pos[0][2])
     

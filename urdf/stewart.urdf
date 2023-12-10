@@ -23,7 +23,7 @@
     <parent link="world"/>
     <child  link="leg1-uj-shaft"/>
     <origin xyz="0.25 1.5 0.3" rpy="0 0 0"/>
-    <axis   xyz="1 0 0"/>
+    <axis   xyz="0 1 0"/>
   </joint>
 
   <link name="leg1-uj-shaft">
@@ -32,7 +32,7 @@
       <geometry>
         <mesh filename="package://finalprojectcode/meshes/UJ_Shaft.dae"/>
       </geometry>
-    </visual> -->
+    </visual>
   </link>
 
 
@@ -40,7 +40,7 @@
     <parent link="leg1-uj-shaft"/>
     <child  link="leg1-slider-base"/>
     <origin xyz="0 0 0" rpy="0 0 0"/>
-    <axis   xyz="0 1 0"/>
+    <axis   xyz="1 0 0"/>
   </joint>
 
   <link name="leg1-slider-base">
@@ -56,7 +56,7 @@
     <parent link="leg1-slider-base"/>
     <child  link="leg1-slider-shaft"/>
     <origin xyz="0 0 0.4" rpy="3.14159 0 0"/>
-    <limit effort="1000.0" lower="0" upper="1.5" velocity="0.5"/>
+    <limit effort="1000.0" lower="0" upper="1.8" velocity="0.5"/>
     <axis   xyz="0 0 -1"/>
   </joint>
 
@@ -77,13 +77,13 @@
 
   <link name="leg1-tip"/>
 
-  <joint name="leg1-tip-to-platform" type="fixed">
+  <!-- <joint name="leg1-tip-to-platform" type="fixed">
     <parent link="leg1-tip"/>
     <child  link="leg1-platform"/>
     <origin xyz="0 1.25 -0.2" rpy="0 0 0"/>
   </joint>
 
-  <link name="leg1-platform"/>
+  <link name="leg1-platform"/> -->
 
 ##### LEG 2 #####
 
@@ -93,7 +93,7 @@
     <parent link="world"/>
     <child  link="leg2-uj-shaft"/>
     <origin xyz="-0.25 1.50 0.3" rpy="0 0 0"/>
-    <axis   xyz="1 0 0"/>
+    <axis   xyz="0 1 0"/>
   </joint>
 
   <link name="leg2-uj-shaft">
@@ -110,7 +110,7 @@
     <parent link="leg2-uj-shaft"/>
     <child  link="leg2-slider-base"/>
     <origin xyz="0 0 0" rpy="0 0 0"/>
-    <axis   xyz="0 1 0"/>
+    <axis   xyz="1 0 0"/>
   </joint>
 
   <link name="leg2-slider-base">
@@ -126,7 +126,7 @@
     <parent link="leg2-slider-base"/>
     <child  link="leg2-slider-shaft"/>
     <origin xyz="0 0 0.4" rpy="3.14159 0 0"/>
-    <limit effort="1000.0" lower="0" upper="1.5" velocity="0.5"/>
+    <limit effort="1000.0" lower="0" upper="1.8" velocity="0.5"/>
     <axis   xyz="0 0 -1"/>
   </joint>
 
@@ -147,21 +147,21 @@
 
   <link name="leg2-tip"/>
 
-  <joint name="leg2-tip-to-platform" type="fixed">
+  <!-- <joint name="leg2-tip-to-platform" type="fixed">
     <parent link="leg2-tip"/>
     <child  link="leg2-platform"/>
     <origin xyz="0 1.25 -0.2" rpy="0 0 0"/>
   </joint>
 
-  <link name="leg2-platform"/>
+  <link name="leg2-platform"/> -->
   
   ##### LEG 3
   
   <joint name="leg3-pitch" type="continuous">
     <parent link="world"/>
     <child  link="leg3-uj-shaft"/>
-    <origin xyz="-1.424038 -0.533494 0.3" rpy="0 0 2.094395"/>
-    <axis   xyz="1 0 0"/>
+    <origin xyz="-1.424038 -0.533494 0.3" rpy="0 0 0"/>
+    <axis   xyz="0 1 0"/>
   </joint>
 
   <link name="leg3-uj-shaft">
@@ -178,7 +178,7 @@
     <parent link="leg3-uj-shaft"/>
     <child  link="leg3-slider-base"/>
     <origin xyz="0 0 0" rpy="0 0 0"/>
-    <axis   xyz="0 1 0"/>
+    <axis   xyz="1 0 0"/>
   </joint>
 
   <link name="leg3-slider-base">
@@ -194,7 +194,7 @@
     <parent link="leg3-slider-base"/>
     <child  link="leg3-slider-shaft"/>
     <origin xyz="0 0 0.4" rpy="3.14159 0 0"/>
-    <limit effort="1000.0" lower="0" upper="1.5" velocity="0.5"/>
+    <limit effort="1000.0" lower="0" upper="1.8" velocity="0.5"/>
     <axis   xyz="0 0 -1"/>
   </joint>
 
@@ -215,21 +215,21 @@
 
   <link name="leg3-tip"/>
 
-  <joint name="leg3-tip-to-platform" type="fixed">
+  <!-- <joint name="leg3-tip-to-platform" type="fixed">
     <parent link="leg3-tip"/>
     <child  link="leg3-platform"/>
     <origin xyz="0 1.25 -0.2" rpy="0 0 0"/>
   </joint>
 
-  <link name="leg3-platform"/>
+  <link name="leg3-platform"/> -->
   
   ##### LEG 4
   
   <joint name="leg4-pitch" type="continuous">
     <parent link="world"/>
     <child  link="leg4-uj-shaft"/>
-    <origin xyz="-1.1174038 -0.96650635 0.3" rpy="0 0 2.094395"/>
-    <axis   xyz="1 0 0"/>
+    <origin xyz="-1.1174038 -0.96650635 0.3" rpy="0 0 0"/>
+    <axis   xyz="0 1 0"/>
   </joint>
 
   <link name="leg4-uj-shaft">
@@ -246,7 +246,7 @@
     <parent link="leg4-uj-shaft"/>
     <child  link="leg4-slider-base"/>
     <origin xyz="0 0 0" rpy="0 0 0"/>
-    <axis   xyz="0 1 0"/>
+    <axis   xyz="1 0 0"/>
   </joint>
 
   <link name="leg4-slider-base">
@@ -262,7 +262,7 @@
     <parent link="leg4-slider-base"/>
     <child  link="leg4-slider-shaft"/>
     <origin xyz="0 0 0.4" rpy="3.14159 0 0"/>
-    <limit effort="1000.0" lower="0" upper="1.5" velocity="0.5"/>
+    <limit effort="1000.0" lower="0" upper="1.8" velocity="0.5"/>
     <axis   xyz="0 0 -1"/>
   </joint>
 
@@ -283,13 +283,13 @@
 
   <link name="leg4-tip"/>
 
-  <joint name="leg4-tip-to-platform" type="fixed">
+  <!-- <joint name="leg4-tip-to-platform" type="fixed">
     <parent link="leg4-tip"/>
     <child  link="leg4-platform"/>
     <origin xyz="0 -1.25 -0.2" rpy="0 0 0"/>
   </joint>
 
-  <link name="leg4-platform"/>
+  <link name="leg4-platform"/> -->
 
   ##### LEG 5
   
@@ -297,7 +297,7 @@
     <parent link="world"/>
     <child  link="leg5-uj-shaft"/>
     <origin xyz="1.1174038 -0.966506 0.3" rpy="0 0 0"/>
-    <axis   xyz="1 0 0"/>
+    <axis   xyz="0 1 0"/>
   </joint>
 
   <link name="leg5-uj-shaft">
@@ -314,7 +314,7 @@
     <parent link="leg5-uj-shaft"/>
     <child  link="leg5-slider-base"/>
     <origin xyz="0 0 0" rpy="0 0 0"/>
-    <axis   xyz="0 1 0"/>
+    <axis   xyz="1 0 0"/>
   </joint>
 
   <link name="leg5-slider-base">
@@ -330,7 +330,7 @@
     <parent link="leg5-slider-base"/>
     <child  link="leg5-slider-shaft"/>
     <origin xyz="0 0 0.4" rpy="3.14159 0 0"/>
-    <limit effort="1000.0" lower="0" upper="1.5" velocity="0.5"/>
+    <limit effort="1000.0" lower="0" upper="1.8" velocity="0.5"/>
     <axis   xyz="0 0 -1"/>
   </joint>
 
@@ -351,13 +351,13 @@
 
   <link name="leg5-tip"/>
 
-    <joint name="leg5-tip-to-platform" type="fixed">
+  <!-- <joint name="leg5-tip-to-platform" type="fixed">
     <parent link="leg5-tip"/>
     <child  link="leg5-platform"/>
     <origin xyz="0 -1.25 -0.2" rpy="0 0 0"/>
   </joint>
 
-  <link name="leg5-platform"/>
+  <link name="leg5-platform"/> -->
   
   
   ##### LEG 6
@@ -365,8 +365,8 @@
   <joint name="leg6-pitch" type="continuous">
     <parent link="world"/>
     <child  link="leg6-uj-shaft"/>
-    <origin xyz="1.424038 -0.533494 0.3" rpy="0 0 1.047197"/>
-    <axis   xyz="1 0 0"/>
+    <origin xyz="1.424038 -0.533494 0.3" rpy="0 0 0"/>
+    <axis   xyz="0 1 0"/>
   </joint>
 
   <link name="leg6-uj-shaft">
@@ -383,7 +383,7 @@
     <parent link="leg6-uj-shaft"/>
     <child  link="leg6-slider-base"/>
     <origin xyz="0 0 0" rpy="0 0 0"/>
-    <axis   xyz="0 1 0"/>
+    <axis   xyz="1 0 0"/>
   </joint>
 
   <link name="leg6-slider-base">
@@ -399,7 +399,7 @@
     <parent link="leg6-slider-base"/>
     <child  link="leg6-slider-shaft"/>
     <origin xyz="0 0 0.4" rpy="3.14159 0 0"/>
-    <limit effort="1000.0" lower="0" upper="1.5" velocity="0.5"/>
+    <limit effort="1000.0" lower="0" upper="1.8" velocity="0.5"/>
     <axis   xyz="0 0 -1"/>
   </joint>
 
@@ -420,7 +420,7 @@
 
   <link name="leg6-tip"/>
   
-  <joint name="leg6-tip-to-platform" type="fixed">
+  <!-- <joint name="leg6-tip-to-platform" type="fixed">
     <parent link="leg6-tip"/>
     <child  link="leg6-platform"/>
     <origin xyz="0 0 -0.2" rpy="0 0 0"/>
@@ -433,8 +433,7 @@
         <mesh filename="package://finalprojectcode/meshes/Platform_Top.dae"/>
       </geometry>
     </visual>
-  </link>
-	
+  </link> -->
 
   <!-- *************************************************** -->
   <!-- ********************* Graphics ******************** -->
