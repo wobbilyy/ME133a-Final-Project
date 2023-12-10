@@ -10,7 +10,6 @@ from math import pi, sin, cos, acos, atan2, sqrt, fmod, exp
 from finalprojectcode.GeneratorNode      import GeneratorNode
 from hw5code.TransformHelpers   import *
 from hw5code.TrajectoryUtils    import *
-import KinematicHelpers
 
 # Grab the general fkin from HW5 P5.
 from finalprojectcode.KinematicChain     import KinematicChain
