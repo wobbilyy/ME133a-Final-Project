@@ -25,6 +25,7 @@
 
 import rclpy
 import numpy as np
+import tkinter as tk
 
 from rclpy.node                 import Node
 from rclpy.qos                  import QoSProfile, DurabilityPolicy
@@ -114,6 +115,8 @@ class GeneratorNode(Node):
         self.timer = self.create_timer(self.dt, self.update)
         self.get_logger().info("Running with dt of %f seconds (%fHz)" %
                                (self.dt, rate))
+                             
+        self.init_gui();
 
     # Shutdown
     def shutdown(self):
@@ -174,9 +177,100 @@ class GeneratorNode(Node):
         self.pub.publish(cmdmsg)
 
         # publish platform top
-        if x != None:
+        if x is not None:
             self.marker.header.stamp  = now.to_msg()
             self.marker.pose.position.x = float(x[0])
             self.marker.pose.position.y = float(x[1])
             self.marker.pose.position.z = float(x[2] + 2.8)
             self.marker_publisher.publish(self.mark)
+            
+    #======================================================================
+    # Stuff added by Ruth
+    
+    # Using K, we shall attempt to change the leg lengths with sliders and view the output.
+    def update_values(self):
+        self.trajectory.xgoal = [self.slider1.get(), self.slider2.get(), self.slider3.get(), self.slider4.get(), self.slider5.get(), self.slider6.get()]
+        self.trajectory.qgoal  = self.trajectory.K.fkin(self.trajectory.xgoal)
+        if (np.linalg.norm(np.array(self.trajectory.xgoal) - np.array(self.trajectory.K.invkin())) < 0.01):
+            # Congrats, we actually converged. Update slider values.
+            self.label1.config(text=f"Leg 1: {self.slider1.get():.2f}")
+            self.label2.config(text=f"Leg 2: {self.slider2.get():.2f}")
+            self.label3.config(text=f"Leg 3: {self.slider3.get():.2f}")
+            self.label4.config(text=f"Leg 4: {self.slider4.get():.2f}")
+            self.label5.config(text=f"Leg 5: {self.slider5.get():.2f}")
+            self.label6.config(text=f"Leg 6: {self.slider6.get():.2f}")
+            self.update()
+        else:
+            # Didn't converge. Set sliders to the last valid value.
+            self.trajectory.xgoal = self.trajectory.K.invkin()
+            self.var1.set(float("{:.2f}".format(self.trajectory.xgoal[0])))
+            self.var2.set(float("{:.2f}".format(self.trajectory.xgoal[1])))
+            self.var3.set(float("{:.2f}".format(self.trajectory.xgoal[2])))
+            self.var4.set(float("{:.2f}".format(self.trajectory.xgoal[3])))
+            self.var5.set(float("{:.2f}".format(self.trajectory.xgoal[4])))
+            self.var6.set(float("{:.2f}".format(self.trajectory.xgoal[5])))
+    
+    def init_gui(self):
+        
+        # Create the main window
+        self.root = tk.Tk()
+        self.root.title("Leg Sliders")
+
+        # Variables for sliders
+        self.var1 = tk.DoubleVar()
+        self.var2 = tk.DoubleVar()
+        self.var3 = tk.DoubleVar()
+        self.var4 = tk.DoubleVar()
+        self.var5 = tk.DoubleVar()
+        self.var6 = tk.DoubleVar()
+
+        # Create the sliders
+        self.slider1 = tk.Scale(self.root, from_=2.4, to=10, orient="horizontal", variable=self.var1, resolution=0.01, command=lambda _: self.update_values())
+        self.slider1.pack(pady=5)
+
+        self.slider2 = tk.Scale(self.root, from_=2.4, to=10, orient="horizontal", variable=self.var2, resolution=0.01, command=lambda _: self.update_values())
+        self.slider2.pack(pady=5)
+
+        self.slider3 = tk.Scale(self.root, from_=2.4, to=10, orient="horizontal", variable=self.var3, resolution=0.01, command=lambda _: self.update_values())
+        self.slider3.pack(pady=5)
+
+        self.slider4 = tk.Scale(self.root, from_=2.4, to=10, orient="horizontal", variable=self.var4, resolution=0.01, command=lambda _: self.update_values())
+        self.slider4.pack(pady=5)
+
+        self.slider5 = tk.Scale(self.root, from_=2.4, to=10, orient="horizontal", variable=self.var5, resolution=0.01, command=lambda _: self.update_values())
+        self.slider5.pack(pady=5)
+
+        self.slider6 = tk.Scale(self.root, from_=2.4, to=10, orient="horizontal", variable=self.var6, resolution=0.01, command=lambda _: self.update_values())
+        self.slider6.pack(pady=5)
+
+        # Set initial values
+        self.var1.set(float("{:.2f}".format(self.trajectory.xgoal[0])))
+        self.var2.set(float("{:.2f}".format(self.trajectory.xgoal[1])))
+        self.var3.set(float("{:.2f}".format(self.trajectory.xgoal[2])))
+        self.var4.set(float("{:.2f}".format(self.trajectory.xgoal[3])))
+        self.var5.set(float("{:.2f}".format(self.trajectory.xgoal[4])))
+        self.var6.set(float("{:.2f}".format(self.trajectory.xgoal[5])))
+
+        # Labels to display the leg values
+        self.label1 = tk.Label(self.root, text="Leg 1: "+str(self.var1.get()))
+        self.label1.pack(pady=5)
+
+        self.label2 = tk.Label(self.root, text="Leg 2: "+str(self.var2.get()))
+        self.label2.pack(pady=5)
+
+        self.label3 = tk.Label(self.root, text="Leg 3: "+str(self.var3.get()))
+        self.label3.pack(pady=5)
+
+        self.label4 = tk.Label(self.root, text="Leg 4: "+str(self.var4.get()))
+        self.label4.pack(pady=5)
+
+        self.label5 = tk.Label(self.root, text="Leg 5: "+str(self.var5.get()))
+        self.label5.pack(pady=5)
+
+        self.label6 = tk.Label(self.root, text="Leg 6: "+str(self.var6.get()))
+        self.label6.pack(pady=5)
+        
+        self.update()
+
+    def run_gui(self):
+        self.root.mainloop()
