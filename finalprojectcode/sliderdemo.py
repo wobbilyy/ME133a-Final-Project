@@ -51,6 +51,8 @@ class Trajectory():
         # # Define the various points.
         self.x0 = [0, 0, 0, np.radians(0), np.radians(0), np.radians(0)]
         self.q0 = self.KinematicChain.stewart_to_spider_q(self.x0)
+
+        self.slider = Sliders(self.top_pos, self.center_pos, self.base_pos, self.q0)
         
         print(f"!!!!For leg lengths {self.xgoal}: found q = {self.qgoal}, spider q = {self.q0}")
         print("!!!!!================================================================")
@@ -71,6 +73,12 @@ class Trajectory():
         qdot = np.zeros((18, 1))
         self.spiderq = self.K.stewart_to_spider_q()
         q = np.array(self.spiderq)
+
+        x = self.slider.fkin(np.array([q[2], q[5], q[8], q[11], q[14], q[17]]), np.array([self.q0[2], self.q0[5], self.q0[8], self.q0[11], self.q0[14], self.q0[17]]))
+        print("---- leg lengths ---\n", np.array([q[2], q[5], q[8], q[11], q[14], q[17]]))
+        print("---- x ----\n", x)
+        print("--------\n")
+        
         print(f"For leg lengths {self.xgoal}: found q = {self.qgoal}, spider q = {q}")
         print("================================================================")
 
@@ -91,7 +99,6 @@ def main(args=None):
     generator = GeneratorNode('generator', 100, T)
     
     generator.run_gui()
-    
     
     # Shutdown the node and ROS.
     generator.shutdown()

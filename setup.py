@@ -25,6 +25,7 @@ setup(
     entry_points={
         'console_scripts': [
             'finalproject = finalprojectcode.finalproject:main',
+            'sliderdemo = finalprojectcode.sliderdemo:main',
         ],
     },
 )

@@ -121,9 +121,6 @@ class Trajectory():
         # Initialize the current/starting joint position.
         self._lambda = 20
 
-        # self.leg = input("Which leg would you like to extend?")
-        # self.leg_length = ("What length would you like to extend this leg to?")
-
     # Declare the joint names.
     def jointnames(self):
         # Return a list of joint names FOR THE EXPECTED URDF!

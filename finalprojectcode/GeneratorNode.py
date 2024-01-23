@@ -26,6 +26,7 @@
 import rclpy
 import numpy as np
 import tkinter as tk
+from scipy.spatial.transform import Rotation
 
 from rclpy.node                 import Node
 from rclpy.qos                  import QoSProfile, DurabilityPolicy
@@ -116,7 +117,7 @@ class GeneratorNode(Node):
         self.get_logger().info("Running with dt of %f seconds (%fHz)" %
                                (self.dt, rate))
                              
-        self.init_gui();
+        self.init_gui()
 
     # Shutdown
     def shutdown(self):
@@ -178,11 +179,16 @@ class GeneratorNode(Node):
 
         # publish platform top
         if x is not None:
+            rot = Rotation.from_euler('xyz', x[3:], degrees=False).as_quat()
             self.marker.header.stamp  = now.to_msg()
             self.marker.pose.position.x = float(x[0])
             self.marker.pose.position.y = float(x[1])
             self.marker.pose.position.z = float(x[2] + 2.8)
             self.marker_publisher.publish(self.mark)
+            self.marker.pose.orientation.x = 3.14159 + rot[0]
+            self.marker.pose.orientation.y = -rot[1]
+            self.marker.pose.orientation.z = -rot[2]
+            self.marker.pose.orientation.w = -rot[3]
             
     #======================================================================
     # Stuff added by Ruth
@@ -225,22 +231,22 @@ class GeneratorNode(Node):
         self.var6 = tk.DoubleVar()
 
         # Create the sliders
-        self.slider1 = tk.Scale(self.root, from_=2.4, to=10, orient="horizontal", variable=self.var1, resolution=0.01, command=lambda _: self.update_values())
+        self.slider1 = tk.Scale(self.root, from_=2.4, to=5, orient="horizontal", variable=self.var1, resolution=0.01, command=lambda _: self.update_values())
         self.slider1.pack(pady=5)
 
-        self.slider2 = tk.Scale(self.root, from_=2.4, to=10, orient="horizontal", variable=self.var2, resolution=0.01, command=lambda _: self.update_values())
+        self.slider2 = tk.Scale(self.root, from_=2.4, to=5, orient="horizontal", variable=self.var2, resolution=0.01, command=lambda _: self.update_values())
         self.slider2.pack(pady=5)
 
-        self.slider3 = tk.Scale(self.root, from_=2.4, to=10, orient="horizontal", variable=self.var3, resolution=0.01, command=lambda _: self.update_values())
+        self.slider3 = tk.Scale(self.root, from_=2.4, to=5, orient="horizontal", variable=self.var3, resolution=0.01, command=lambda _: self.update_values())
         self.slider3.pack(pady=5)
 
-        self.slider4 = tk.Scale(self.root, from_=2.4, to=10, orient="horizontal", variable=self.var4, resolution=0.01, command=lambda _: self.update_values())
+        self.slider4 = tk.Scale(self.root, from_=2.4, to=5, orient="horizontal", variable=self.var4, resolution=0.01, command=lambda _: self.update_values())
         self.slider4.pack(pady=5)
 
-        self.slider5 = tk.Scale(self.root, from_=2.4, to=10, orient="horizontal", variable=self.var5, resolution=0.01, command=lambda _: self.update_values())
+        self.slider5 = tk.Scale(self.root, from_=2.4, to=5, orient="horizontal", variable=self.var5, resolution=0.01, command=lambda _: self.update_values())
         self.slider5.pack(pady=5)
 
-        self.slider6 = tk.Scale(self.root, from_=2.4, to=10, orient="horizontal", variable=self.var6, resolution=0.01, command=lambda _: self.update_values())
+        self.slider6 = tk.Scale(self.root, from_=2.4, to=5, orient="horizontal", variable=self.var6, resolution=0.01, command=lambda _: self.update_values())
         self.slider6.pack(pady=5)
 
         # Set initial values

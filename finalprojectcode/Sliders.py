@@ -1,8 +1,9 @@
 import numpy as np
 import math
-from TransformHelpers import Rotx, Roty, Rotz
 from sympy import symbols, cos, sin, diff
 import tkinter as tk
+
+from finalprojectcode.TransformHelpers import Rotx, Roty, Rotz
 
 # Let q = [Tx, Ty, Tz, psi, theta, phi]
 # x = [L1, L2, L3, L4, L5]
@@ -67,7 +68,8 @@ class Sliders():
         '''
 
         # Set the initial joint value guess.
-        if qstart == []: qstart = self.q
+        if qstart == []: 
+            qstart = self.q
         q = qstart
         q_0 = q
 
@@ -252,6 +254,7 @@ if __name__ == "__main__":
     def update_values():
         xgoal = [slider1.get(), slider2.get(), slider3.get(), slider4.get(), slider5.get(), slider6.get()]
         q_new = K.fkin(xgoal)
+
         print(f"For leg lengths {xgoal}: found q = {q_new}")
         print("================================================================")
         if (np.linalg.norm(np.array(xgoal) - np.array(K.invkin())) < 0.01):
