@@ -8,8 +8,8 @@ from math import pi, sin, cos, acos, atan2, sqrt, fmod, exp
 
 # Grab the utilities
 from finalprojectcode.GeneratorNode      import GeneratorNode
-from hw5code.TransformHelpers   import *
-from hw5code.TrajectoryUtils    import *
+from finalprojectcode.TransformHelpers   import *
+from finalprojectcode.TrajectoryUtils    import *
 
 # Grab the general fkin from HW5 P5.
 from finalprojectcode.KinematicChain     import KinematicChain
@@ -46,6 +46,7 @@ class Trajectory():
         self.qgoal = [0,0,0,0,0,0]      # Desired top orientation platform
         self.xgoal = self.K.invkin()    # Desired leg lengths
         self.spiderq = self.K.stewart_to_spider_q()
+        
         
         self.KinematicChain = KinematicHelpers(self.top_pos, self.center_pos, self.base_pos)
         # # Define the various points.

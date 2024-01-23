@@ -142,7 +142,7 @@ class Sliders():
             spider_q.append(pitch)
             spider_q.append(roll)
             spider_q.append(leg_length - 2.4)
-
+        
         return spider_q
 
 

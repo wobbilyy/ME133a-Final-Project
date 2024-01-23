@@ -8,8 +8,8 @@ from math import pi, sin, cos, acos, atan2, sqrt, fmod, exp
 
 # Grab the utilities
 from finalprojectcode.GeneratorNode      import GeneratorNode
-from hw5code.TransformHelpers   import *
-from hw5code.TrajectoryUtils    import *
+from finalprojectcode.TransformHelpers   import *
+from finalprojectcode.TrajectoryUtils    import *
 
 # Grab the general fkin from HW5 P5.
 from finalprojectcode.KinematicChain     import KinematicChain
@@ -24,13 +24,13 @@ class Trajectory():
     def __init__(self, node):
         # # Set up the kinematic chain object.
         r =  1.25
-        height = 2.6
-        self.base_pos = [[ 0.25     ,  1.5       , 0],
-                    [-0.25     ,  1.5       , 0],
-                    [-1.424038 , -0.533494  , 0],
-                    [-1.1174038, -0.96650635, 0], 
-                    [ 1.1174038, -0.96650635, 0], 
-                    [ 1.424038 , -0.533494  , 0]]
+        height = 2.9
+        self.base_pos = [[1.5,      0,      0],
+                     [0.75,     1.299,  0],
+                     [-0.75,    1.299,  0],
+                     [-1.5,     0    ,  0],
+                     [-0.75,   -1.299,  0],
+                     [0.75,     1.299,  0]]
         self.center_pos = [0        ,  0         , height - 0.2]
         self.top_pos = [[r * np.cos(np.radians(0))  , r * np.sin(np.radians(0))  , height - 0.2],
                    [r * np.cos(np.radians(60)) , r * np.sin(np.radians(60)) , height - 0.2],
@@ -95,23 +95,38 @@ class Trajectory():
         self.index = 0
 
         # Initialize kinematic chain helper object
-        base_pos = [[0.25, 1.5, 0],
-                    [-0.25, 1.5, 0],
-                    [-1.424038, -0.533494, 0], 
-                    [-1.1174038, -0.96650635, 0], 
-                    [1.1174038, -0.966506, 0], 
-                    [1.424038, -0.533494, 0]]
+        # base_pos = [[0.25, 1.5, 0],
+        #             [-0.25, 1.5, 0],
+        #             [-1.424038, -0.533494, 0], 
+        #             [-1.1174038, -0.96650635, 0], 
+        #             [1.1174038, -0.966506, 0], 
+        #             [1.424038, -0.533494, 0]]
+        base_pos =  [[1.5,      0,      0],
+                     [0.75,     1.299,  0],
+                     [-0.75,    1.299,  0],
+                     [-1.5,     0    ,  0],
+                     [-0.75,   -1.299,  0],
+                     [0.75,     1.299,  0]]
         r =  1.25
         height = 2.6
-        center_pos = [0,0,height-0.2]
+        center_pos = [0,0,height-0.1]
+        # top_pos = [
+        #         [r * np.cos(np.pi/180*(0)), r * np.cos(np.pi/180*(0)),   height - 0.2],
+        #         [r * np.cos(np.pi/180*(60)), r * np.cos(np.pi/180*(60)), height - 0.2],
+        #         [r * np.cos(np.pi/180*(120)), r * np.cos(np.pi/180*(120)), height - 0.2],
+        #         [r * np.cos(np.pi/180*(180)), r * np.cos(np.pi/180*(180)), height - 0.2],
+        #         [r * np.cos(np.pi/180*(240)), r * np.cos(np.pi/180*(240)), height - 0.2],
+        #         [r * np.cos(np.pi/180*(300)), r * np.cos(np.pi/180*(300)), height - 0.2]
+        #         ] 
         top_pos = [
-                [r * np.cos(np.pi/180*(0)), r * np.cos(np.pi/180*(0)), height - 0.2],
-                [r * np.cos(np.pi/180*(60)), r * np.cos(np.pi/180*(60)), height - 0.2],
-                [r * np.cos(np.pi/180*(120)), r * np.cos(np.pi/180*(120)), height - 0.2],
-                [r * np.cos(np.pi/180*(180)), r * np.cos(np.pi/180*(180)), height - 0.2],
-                [r * np.cos(np.pi/180*(240)), r * np.cos(np.pi/180*(240)), height - 0.2],
-                [r * np.cos(np.pi/180*(300)), r * np.cos(np.pi/180*(300)), height - 0.2]
-                ]   
+                  [1.207,   -.408,  0],
+                  [0.25,     1.25,  0],
+                  [-0.25,    1.25,  0],
+                  [-1.207,  -.408,  0],
+                  [-0.957,  -0.841, 0],
+                  [0.957,   -0.841, 0],
+                  
+                    ]  
         self.K = KinematicHelpers(top_pos, center_pos, base_pos)
 
         self.stewart_q = [0,0,0,0,0,0] # Current position/orientation of top plate
@@ -136,36 +151,8 @@ class Trajectory():
 
     # Evaluate at the given time.  This was last called (dt) ago.
     def evaluate(self, t, dt):
-        # ##### UP DOWN DEMO WITH PLATFORM POSITION #####
-        # if t > self.desired_time * 2 * len(self.left_right):
-        #     return None
-
-        # if self.last_time == -1:
-        #     self.last_time = t
-
-        # delta = t - self.last_time
-
-        # if delta > self.desired_time:
-        #     self.last_time = t
-        #     self.index = (self.index + 1) % len(self.left_right)
-        #     delta = 0
-
-        # next_index = (self.index + 1) % len(self.left_right)
-
-        # qdot = ((self.left_right[next_index] - self.left_right[self.index]) / self.desired_time)
-        # q = self.left_right[self.index] + qdot * delta
-
-        # xdot = ((self.left_right_positions[next_index] - self.left_right_positions[self.index]) / self.desired_time)
-        # x = self.left_right_positions[self.index] + xdot * delta
-        # x = x.flatten().tolist()
-
-        ##### USE FKIN TO DETERMINE TOP PLATFORM #####
-        # x = self.KinematicChain.fkin(np.array([q[2], q[5], q[8], q[11], q[14], q[17]]), self.x0)
-        # print("---- leg lengths ---\n", np.array([q[2], q[5], q[8], q[11], q[14], q[17]]))
-        # print("---- x ----\n", x)
-
-        #### FULL DEMO ####
-        if t > self.desired_time * len(self.demo):
+        ##### UP DOWN DEMO WITH PLATFORM POSITION #####
+        if t > self.desired_time * 2 * len(self.left_right):
             return None
 
         if self.last_time == -1:
@@ -175,17 +162,45 @@ class Trajectory():
 
         if delta > self.desired_time:
             self.last_time = t
-            self.index = (self.index + 1) % len(self.demo)
+            self.index = (self.index + 1) % len(self.left_right)
             delta = 0
 
-        next_index = (self.index + 1) % len(self.demo)
+        next_index = (self.index + 1) % len(self.left_right)
 
-        qdot = ((self.demo[next_index] - self.demo[self.index]) / self.desired_time)
-        q = self.demo[self.index] + qdot * delta
+        qdot = ((self.left_right[next_index] - self.left_right[self.index]) / self.desired_time)
+        q = self.left_right[self.index] + qdot * delta
 
-        xdot = ((self.demo_positions[next_index] - self.demo_positions[self.index]) / self.desired_time)
-        x = self.demo_positions[self.index] + xdot * delta
+        xdot = ((self.left_right_positions[next_index] - self.left_right_positions[self.index]) / self.desired_time)
+        x = self.left_right_positions[self.index] + xdot * delta
         x = x.flatten().tolist()
+
+        ##### USE FKIN TO DETERMINE TOP PLATFORM #####
+        # x = self.KinematicChain.fkin(np.array([q[2], q[5], q[8], q[11], q[14], q[17]]), self.x0)
+        # print("---- leg lengths ---\n", np.array([q[2], q[5], q[8], q[11], q[14], q[17]]))
+        # print("---- x ----\n", x)
+
+        #### FULL DEMO ####
+        # if t > self.desired_time * len(self.demo):
+        #     return None
+
+        # if self.last_time == -1:
+        #     self.last_time = t
+
+        # delta = t - self.last_time
+
+        # if delta > self.desired_time:
+        #     self.last_time = t
+        #     self.index = (self.index + 1) % len(self.demo)
+        #     delta = 0
+
+        # next_index = (self.index + 1) % len(self.demo)
+
+        # qdot = ((self.demo[next_index] - self.demo[self.index]) / self.desired_time)
+        # q = self.demo[self.index] + qdot * delta
+
+        # xdot = ((self.demo_positions[next_index] - self.demo_positions[self.index]) / self.desired_time)
+        # x = self.demo_positions[self.index] + xdot * delta
+        # x = x.flatten().tolist()
 
         # qdot = np.zeros((18, 1))
         # q = np.array(self.q_left)

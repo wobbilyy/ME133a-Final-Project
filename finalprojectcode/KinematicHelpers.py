@@ -228,7 +228,8 @@ class KinematicHelpers():
         leg_vectors = self.get_leg_vectors(stewart_q)
         leg_lengths = self.invkin(stewart_q)
         spider_q = []
-
+        leg_yaw_shifts = [0,0,0,0,0,0]
+        # leg_yaw_shifts = [0,0,-2.0944,-2.0944,2.0944,-2.61799]
         for i in range(6):
             leg = leg_vectors[i]
             leg_length = leg_lengths[i]
@@ -241,6 +242,10 @@ class KinematicHelpers():
             pitch = np.arctan2(dz,r) # Rotation about Y 
             roll =  np.arctan2(-dx/r,dy/r) # Rotation about X
 
+            # roll_pitch_yaw = Rotz(-1.57079632679)@(Rotz(leg_yaw_shifts[i]) @ np.array([[roll],[pitch],[0]])) 
+            # pitch = roll_pitch_yaw[1][0] 
+            # roll = roll_pitch_yaw[0][0]
+
             # # Let's check. Do this pitch and roll work out?
             # p_0 = (np.array([0,0,R]).transpose())
             # apparent_leg = Rotx(roll) @ Roty(pitch) @ p_0
@@ -249,6 +254,18 @@ class KinematicHelpers():
             spider_q.append(pitch)
             spider_q.append(roll)
             spider_q.append(leg_length - 2.4)
+
+
+        # leg_5 = np.array([[spider_q[13]],[spider_q[12]],[0]])
+        # leg_5 = Rotz(-0.3) @ leg_5
+        # spider_q[13] = leg_5[0][0]
+        # spider_q[12] = leg_5[1][0]
+        
+        # leg_6 = np.array([[spider_q[16]],[spider_q[15]],[0]])
+        # leg_6 = Rotz(.523599) @ leg_6
+        # spider_q[16] = leg_6[0][0]
+        # spider_q[15] = leg_6[1][0]
+        
 
         return spider_q
 
