@@ -1,24 +1,37 @@
+'''
+This file contains the relevant kinematic chain helper functions to get the
+correct platform orientation and positions, and also the correct leg lengths.
+
+Included are:
+    invkin             : Computes the inverse kinematics given platform position. 
+    compute_jacobian   : Computes the Jacobian using numerical iteration.
+    fkin               : Computes the forward kinematics given leg lengths.
+    stewart_to_spider_q: Converts the platform position to URDF leg joint values.
+    get_leg_vectors    : Converts the platform position to leg vectors.
+'''
 import numpy as np
 import math
-from sympy import symbols, cos, sin, diff
 
 from finalprojectcode.TransformHelpers import Rotx, Roty, Rotz
 
-# Let q = [Tx, Ty, Tz, psi, theta, phi]
-# x = [L1, L2, L3, L4, L5]
 class KinematicChain():
-    def __init__(self, top_pos, center_pos, base_pos):
+    def __init__(self, PLATFORM_MOUNTS_POS, PLATFORM_CENTER, BASE_MOUNTS_POS):
         # Set up initial positions
-        self.top_pos = top_pos
-        self.center_pos = center_pos
-        self.base_pos = base_pos
+        self.PLATFORM_MOUNTS_POS = PLATFORM_MOUNTS_POS
+        self.PLATFORM_CENTER = PLATFORM_CENTER
+        self.BASE_MOUNTS_POS = BASE_MOUNTS_POS
         
         self.lam = 20   # For Newton Raphson
 
     def invkin(self, q):
         '''
-        Given q = [Tx, Ty, Tz, psi, theta, phi],
-        invkin(q) returns x = [L1, L2, L3, L4, L5, L6]
+        Calculates the inverse kinematics for the leg lengths given the platform 
+        position and orientation.
+
+        Arguments:
+            (List) q : platform position and orientation [Tx, Ty, Tz, psi, theta, phi]
+        Returns:
+            (List) x : leg lengths [L1, L2, L3, L4, L5, L6]
         '''
         leg_vectors = self.get_leg_vectors(q)
 
@@ -29,9 +42,16 @@ class KinematicChain():
 
         return X
 
-
-    # Numerically compute Jacobian without derivatives. Just do J = (fkin(x) + fkin(x+q))/ dq
     def compute_jacobian(self, q, epsilon=1e-6):
+        '''
+        Numerically compute Jacobian without derivatives. 
+        J = (fkin(x) + fkin(x+q))/ dq
+        
+        Arguments:
+            (List) q : platform position and orientation [Tx, Ty, Tz, psi, theta, phi]
+        Returns:
+            (6x6 np array) J: the Jacobian from each leg
+        '''
         J = np.zeros((6, 6))
         X0 = self.invkin(q)
 
@@ -48,20 +68,18 @@ class KinematicChain():
 
     def fkin(self, xgoal, qstart):
         '''
-        Newton Raphson with invkin and invJac to find forward kinematics
-        of given leg lengths
-        Used hw5p2 solution code as template.
+        Numerial Newton Raphson iteration with invkin to calculate forward 
+        kinematics for platform position and orientation given leg lengths
 
-        Given x = [L1, L2, L3, L4, L5, L6],
-        and qstart = [Tx, Ty, Tz, psi, theta, phi]     (intial guess)
-        fkin returns q = [Tx, Ty, Tz, psi, theta, phi] (resulting orientation of top platform)
+        Arguments:
+            (List) x : leg lengths [L1, L2, L3, L4, L5, L6]
+            (List) qstart: platform location guess [Tx, Ty, Tz, psi, theta, phi]
+        Returns:
+            (List) q : platform position and orientation [Tx, Ty, Tz, psi, theta, phi] 
         '''
-
         # Set the initial joint value guess.
         q = qstart
 
-        # Get goal translation and rotation.
-        
         # Number of steps to try.
         N = 20
 
@@ -74,7 +92,6 @@ class KinematicChain():
 
             # Compute the delta and adjust.
             xdelta = np.array(np.array(xgoal) - np.array(x)).transpose()
-            #print(f"   our lengths: {x} \nvs desired lengths: {xgoal}")
             qdelta = np.linalg.pinv(J) @ xdelta
             q = q + qdelta
 
@@ -87,15 +104,18 @@ class KinematicChain():
     
     def stewart_to_spider_q(self, stewart_q):
         '''
-        In: stewart_q [Tx, Ty, Tz, psi, theta, phi]
-        Out: spider_q [leg1-pitch, leg1-roll, leg1-prismatic,
-                leg2-pitch, leg2-roll, leg2-prismatic,
-                leg3-pitch, leg3-roll, leg3-prismatic,
-                leg4-pitch, leg4-roll, leg4-prismatic,
-                leg5-pitch, leg5-roll, leg5-prismatic,
-                leg6-pitch, leg6-roll, leg6-prismatic]
-        '''
-        
+        Converts the platform position and orientation to leg joint values.
+
+        Arguments:
+            (List) q : platform position and orientation [Tx, Ty, Tz, psi, theta, phi]
+        Returns:
+            (List) spider_q [leg1-pitch, leg1-roll, leg1-prismatic,
+                             leg2-pitch, leg2-roll, leg2-prismatic,
+                             leg3-pitch, leg3-roll, leg3-prismatic,
+                             leg4-pitch, leg4-roll, leg4-prismatic,
+                             leg5-pitch, leg5-roll, leg5-prismatic,
+                             leg6-pitch, leg6-roll, leg6-prismatic]
+        ''' 
         # To get the leg_pitch and leg_roll, let's use our 2DOF inverse kinematics
         # for a pan-tilt algorithm
         leg_vectors = self.get_leg_vectors(stewart_q)
@@ -111,7 +131,7 @@ class KinematicChain():
             dz = leg[0]/R
             r = np.sqrt(dx**2 + dy**2)
 
-            pitch = np.arctan2(dz,r) # Rotation about Y 
+            pitch = np.arctan2(dz,r)       # Rotation about Y 
             roll =  np.arctan2(-dx/r,dy/r) # Rotation about X
 
             spider_q.append(pitch)
@@ -122,17 +142,20 @@ class KinematicChain():
 
     def get_leg_vectors(self, q):
         '''
-        Given q = [Tx, Ty, Tz, psi, theta, phi],
-        get_leg_vectors(q) returns x = [l1x, l1y, l1z, 
-                                        l2x, l2y, l2z,
-                                        l3x, l3y, l3z,
-                                        l4x, l4y, l4z,
-                                        l5x, l5y, l5z,
-                                        l6x, l6y, l6z]
+        Get the leg vectors given the platform position and orientation.
+        Arguments:
+            (List) q : platform position and orientation [Tx, Ty, Tz, psi, theta, phi]        
+        Returns:
+            (List) x : leg vectors [l1x, l1y, l1z, 
+                                    l2x, l2y, l2z,
+                                    l3x, l3y, l3z,
+                                    l4x, l4y, l4z,
+                                    l5x, l5y, l5z,
+                                    l6x, l6y, l6z]
         '''
-        Tx = q[0] + self.center_pos[0]
-        Ty = q[1] + self.center_pos[1]
-        Tz = q[2] + self.center_pos[2]
+        Tx = q[0] 
+        Ty = q[1] 
+        Tz = q[2]
         psi = q[3]
         theta = q[4]
         phi = q[5]
@@ -140,13 +163,13 @@ class KinematicChain():
         L = []
 
         for i in range(6):
-            T = np.array([Tx,Ty,Tz]).transpose()                # Translation of the center of top
-            p = np.array([self.top_pos[i][0] - self.center_pos[0], 
-                          self.top_pos[i][1] - self.center_pos[1],
-                          self.top_pos[i][2] - self.center_pos[2]]).transpose()  # Vector between point on top and center of top
-            b = np.array(self.base_pos[i]).transpose()               # Base position of given leg
-            Rb = Rotx(psi) @ Roty(theta) @ Rotz(phi)            # Rotation of the top plate
-            l = (T + Rb @ p - b)                                # Vector of leg
+            T = np.array([Tx,Ty,Tz]).transpose()                                                  # Translation of platform from origin
+            p = np.array([self.PLATFORM_MOUNTS_POS[i][0] - self.PLATFORM_CENTER[0], 
+                          self.PLATFORM_MOUNTS_POS[i][1] - self.PLATFORM_CENTER[1],
+                          self.PLATFORM_MOUNTS_POS[i][2] - self.PLATFORM_CENTER[2]]).transpose()  # Vector from platform center to leg mount point
+            b = np.array(self.BASE_MOUNTS_POS[i]).transpose()                                     # Vector from base mount point to leg mount point
+            Rb = Rotx(psi) @ Roty(theta) @ Rotz(phi)                                              # Rotation of platform 
+            l = (T + Rb @ p - b)                                                                  # Leg vector
             L.append([float(l[0]), float(l[1]), float(l[2])])
         
         return L

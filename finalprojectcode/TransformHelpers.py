@@ -43,7 +43,6 @@ import numpy as np
 
 #from urdf_parser_py.urdf import Robot
 
-
 #
 #   Cross Product
 #
@@ -55,7 +54,6 @@ def crossmat(e):
     return np.array([[  0.0, -e[2],  e[1]],
                      [ e[2],   0.0, -e[0]],
                      [-e[1],  e[0],  0.0]])
-
 
 #
 #   3x1 Position Vector
@@ -69,7 +67,6 @@ def pxyz(x,y,z):
 def pe(e, d):
     return e * d
 
-
 #
 #   3x1 Axis (Unit Vector)
 #
@@ -82,7 +79,6 @@ def ez():
 
 def exyz(x,y,z):
     return np.array([[x],[y],[z]]) / np.sqrt(x*x+y*y+z*z)
-
 
 #
 #   3x3 Rotation Matrix
@@ -109,7 +105,6 @@ def Rote(e, alpha):
     ex = crossmat(e)
     return np.eye(3) + np.sin(alpha) * ex + (1.0-np.cos(alpha)) * ex @ ex
 
-
 #
 #   3x1 Error Vectors
 #
@@ -120,7 +115,6 @@ def eR(Rd, R):
     return 0.5 * (cross(R[0:3,0:1], Rd[0:3,0:1]) +
                   cross(R[0:3,1:2], Rd[0:3,1:2]) +
                   cross(R[0:3,2:3], Rd[0:3,2:3]))
-
 
 #
 #   4x4 Transform Matrix
@@ -135,7 +129,6 @@ def p_from_T(T):
     return T[0:3,3:4]
 def R_from_T(T):
     return T[0:3,0:3]
-
 
 #
 #   1x4 Quaternions
@@ -168,7 +161,6 @@ def quat_from_R(R):
         q = c*np.array([R[1][0]-R[0][1], R[0][2]+R[2][0], R[2][1]+R[1][2], A])
     return q
 
-
 #
 #   URDF <origin> element
 #
@@ -185,7 +177,6 @@ def R_from_URDF_rpy(rpy):
 def T_from_URDF_origin(origin):
     return T_from_Rp(R_from_URDF_rpy(origin.rpy), p_from_URDF_xyz(origin.xyz))
 
-
 #
 #   URDF <axis> element
 #
@@ -195,8 +186,6 @@ def T_from_URDF_origin(origin):
 #
 def e_from_URDF_axis(axis):
     return np.array(axis).reshape((3,1))
-
-
 
 #
 #   Main Test Code
@@ -215,3 +204,4 @@ if __name__ == "__main__":
     print("quat:\n", quat)
 
     print("R_from_quat():\n",  R_from_quat(quat))
+    

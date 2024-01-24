@@ -2,8 +2,8 @@
 <COLLADA version="1.4.1" xmlns="http://www.collada.org/2005/11/COLLADASchema">
 
   <asset>
-    <created>2023-12-05T06:25:19</created>
-    <modified>2023-12-05T06:25:19</modified>
+    <created>2024-01-24T01:47:51</created>
+    <modified>2024-01-24T01:47:51</modified>
     <unit meter="1" name="meters"/>
     <up_axis>Z_UP</up_axis>
   </asset>
@@ -133,33 +133,33 @@
 
   <library_visual_scenes>
     <visual_scene id="ID1">
-      <node id="ID2" name="Top">
+      <node id="ID2" name="Platform Top">
         <node>
-          <matrix>0 -1 0 -0.533494 1 0 0 2.67404 0 0 1 -0.1 0 0 0 1</matrix>
+          <matrix>1.11022e-16 -1 0 -0.533494 -1 0 0 -2.67404 0 0 -1 0.1 0 0 0 1</matrix>
           <instance_node url="#ID3"/>
         </node>
         <node>
-          <matrix>0.866025 -0.5 0 -0.116025 0.5 0.866025 0 0.549038 0 0 1 -0.1 0 0 0 1</matrix>
+          <matrix>0.866025 -0.5 0 -0.116025 -0.5 -0.866025 0 -0.549038 0 0 -1 0.1 0 0 0 1</matrix>
           <instance_node url="#ID3"/>
         </node>
         <node>
-          <matrix>1 0 0 0 0 1 0 1.11022e-16 0 0 1 -0.61 0 0 0 1</matrix>
+          <matrix>1 0 0 0 0 -1 0 -9.18485e-17 0 0 -1 0.61 0 0 0 1</matrix>
           <instance_node url="#ID11"/>
         </node>
         <node>
-          <matrix>0.866025 0.5 0 0.417468 -0.5 0.866025 0 0.375 0 0 1 -0.1 0 0 0 1</matrix>
+          <matrix>0.866025 0.5 0 0.417468 0.5 -0.866025 0 -0.375 0 0 -1 0.1 0 0 0 1</matrix>
           <instance_node url="#ID3"/>
         </node>
         <node>
-          <matrix>6.12323e-17 -1 0 -0.533494 1 6.12323e-17 0 0.174038 0 0 1 -0.1 0 0 0 1</matrix>
+          <matrix>1.72255e-16 -1 0 -0.533494 -1 -6.12323e-17 0 -0.174038 0 0 -1 0.1 0 0 0 1</matrix>
           <instance_node url="#ID3"/>
         </node>
         <node>
-          <matrix>0.866025 0.5 0 2.58253 -0.5 0.866025 0 -0.875 0 0 1 -0.1 0 0 0 1</matrix>
+          <matrix>0.866025 0.5 0 2.58253 0.5 -0.866025 0 0.875 0 0 -1 0.1 0 0 0 1</matrix>
           <instance_node url="#ID3"/>
         </node>
         <node>
-          <matrix>0.866025 -0.5 0 2.04904 0.5 0.866025 0 1.79904 0 0 1 -0.1 0 0 0 1</matrix>
+          <matrix>0.866025 -0.5 0 2.04904 -0.5 -0.866025 0 -1.79904 0 0 -1 0.1 0 0 0 1</matrix>
           <instance_node url="#ID3"/>
         </node>
       </node>

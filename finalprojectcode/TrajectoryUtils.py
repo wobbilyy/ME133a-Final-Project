@@ -33,7 +33,6 @@
 
 '''
 
-
 #
 #   Constant Helpers
 #
@@ -46,7 +45,6 @@ def hold(p0):
     v = 0*p0
     return (p,v)
 
-
 #
 #   Linear Helpers
 #
@@ -57,7 +55,6 @@ def interpolate(t, T, p0, pf):
     p = p0 + (pf-p0)/T * t
     v =    + (pf-p0)/T
     return (p,v)
-
 
 #
 #   Cubic Spline Helpers
@@ -87,7 +84,6 @@ def spline(t, T, p0, pf, v0, vf):
     p = a + b * t +   c * t**2 +   d * t**3
     v =     b     + 2*c * t    + 3*d * t**2
     return (p,v)
-
 
 #
 #   Quintic Spline Helpers

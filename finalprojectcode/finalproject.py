@@ -1,10 +1,12 @@
 '''
-final project
+This file demos the inverse kinematics of the platform by making it follow
+a defined trajectory.
+
+When executed, the platform will move side to side, up and down, and tilt.
 '''
 
 import rclpy
 import numpy as np
-from math import pi, sin, cos, acos, atan2, sqrt, fmod, exp
 
 # Grab the utilities
 from finalprojectcode.GeneratorNode      import GeneratorNode
@@ -23,44 +25,52 @@ class Trajectory():
         r =  1.25
         height = 2.6
 
-        self.base_pos = [[ 0.25     ,  1.5       , 0],
+        self.BASE_MOUNTS_POS = [[ 0.25     ,  1.5       , 0],
                         [-0.25     ,  1.5       , 0],
                         [-1.424038 , -0.533494  , 0],
                         [-1.1174038, -0.96650635, 0], 
                         [ 1.1174038, -0.96650635, 0], 
                         [ 1.424038 , -0.533494  , 0]]
-        self.center_pos = [0,  0, height - 0.2]
-        self.top_pos = [[r * np.cos(np.radians(60)) , r * np.sin(np.radians(60)) , height - 0.2],
-                        [r * np.cos(np.radians(120)), r * np.sin(np.radians(120)), height - 0.2],
-                        [r * np.cos(np.radians(180)), r * np.sin(np.radians(180)), height - 0.2],
-                        [r * np.cos(np.radians(240)), r * np.sin(np.radians(240)), height - 0.2],
-                        [r * np.cos(np.radians(300)), r * np.sin(np.radians(300)), height - 0.2],
-                        [r * np.cos(np.radians(0))  , r * np.sin(np.radians(0))  , height - 0.2]] 
+        self.PLATFORM_CENTER = [0,  0, height]
+        self.PLATFORM_MOUNTS_POS = [[r * np.cos(np.radians(60)) , r * np.sin(np.radians(60)) , height ],
+                        [r * np.cos(np.radians(120)), r * np.sin(np.radians(120)), height ],
+                        [r * np.cos(np.radians(180)), r * np.sin(np.radians(180)), height ],
+                        [r * np.cos(np.radians(240)), r * np.sin(np.radians(240)), height ],
+                        [r * np.cos(np.radians(300)), r * np.sin(np.radians(300)), height ],
+                        [r * np.cos(np.radians(0))  , r * np.sin(np.radians(0))  , height ]] 
 
-        self.KinematicChain = KinematicChain(self.top_pos, self.center_pos, self.base_pos)
+        self.KinematicChain = KinematicChain(self.PLATFORM_MOUNTS_POS, self.PLATFORM_CENTER, self.BASE_MOUNTS_POS)
 
         # # Define the various points.
-        self.x0 = [0, 0, 0, np.radians(0), np.radians(0), np.radians(0)]
-        self.q0 = self.KinematicChain.stewart_to_spider_q(self.x0)
+        self.q0 = [0, 0, 0+height, np.radians(0), np.radians(0), np.radians(0)]
+        self.sq0 = self.KinematicChain.stewart_to_spider_q(self.q0)
 
-        self.x_up = [0, 0, 1, np.radians(0), np.radians(0), np.radians(0)]
-        self.q_up = self.KinematicChain.stewart_to_spider_q(self.x_up)
+        self.q_up = [0, 0, 1+height, np.radians(0), np.radians(0), np.radians(0)]
+        self.sq_up = self.KinematicChain.stewart_to_spider_q(self.q_up)
 
-        self.x_right = [1, 0, 1, np.radians(15), np.radians(0), np.radians(0)]
+        self.q_right = [1, 0, 1+height, np.radians(15), np.radians(0), np.radians(0)]
         # self.x_right = [1, 0, 0, np.radians(0), np.radians(0), np.radians(0)]
-        self.q_right = self.KinematicChain.stewart_to_spider_q(self.x_right)
+        self.sq_right = self.KinematicChain.stewart_to_spider_q(self.q_right)
 
-        self.x_left = [-1, 0, 1, np.radians(15), np.radians(25), np.radians(0)]
+        self.q_left = [-1, 0, 1+height, np.radians(15), np.radians(25), np.radians(0)]
         # self.x_left = [-1, 0, 0, np.radians(0), np.radians(0), np.radians(0)]
-        self.q_left = self.KinematicChain.stewart_to_spider_q(self.x_left)
+        self.sq_left = self.KinematicChain.stewart_to_spider_q(self.q_left)
 
-        self.x_back = [0, 1, 1, np.radians(-20), np.radians(0), np.radians(0)]
-        self.q_back = self.KinematicChain.stewart_to_spider_q(self.x_back)
+        self.q_back = [0, 1, 1+height, np.radians(-20), np.radians(0), np.radians(0)]
+        self.sq_back = self.KinematicChain.stewart_to_spider_q(self.q_back)
 
-        self.x_forward = [0, -1, 0, np.radians(0), np.radians(-10), np.radians(0)]
-        self.q_forward = self.KinematicChain.stewart_to_spider_q(self.x_forward)
+        self.q_forward = [0, -1, 0+height, np.radians(0), np.radians(-10), np.radians(0)]
+        self.sq_forward = self.KinematicChain.stewart_to_spider_q(self.q_forward)
 
         self.demo = [
+            np.array(self.sq0),
+            np.array(self.sq_up),
+            np.array(self.sq_right),
+            np.array(self.sq_left),
+            np.array(self.sq_back),
+            np.array(self.sq_forward),
+        ]
+        self.demo_positions = [
             np.array(self.q0),
             np.array(self.q_up),
             np.array(self.q_right),
@@ -68,23 +78,15 @@ class Trajectory():
             np.array(self.q_back),
             np.array(self.q_forward),
         ]
-        self.demo_positions = [
-            np.array(self.x0),
-            np.array(self.x_up),
-            np.array(self.x_right),
-            np.array(self.x_left),
-            np.array(self.x_back),
-            np.array(self.x_forward),
-        ]
         self.left_right = [
-            np.array(self.q0),
-            np.array(self.q_up),
+            np.array(self.sq0),
+            np.array(self.sq_up),
             # np.array(self.q_left),
             # np.array(self.q_right)
         ]
         self.left_right_positions = [
-            np.array(self.x0),
-            np.array(self.x_up)
+            np.array(self.q0),
+            np.array(self.q_up)
             # np.array(self.x_left),
             # np.array(self.x_right)
         ]
@@ -107,34 +109,6 @@ class Trajectory():
 
     # Evaluate at the given time.  This was last called (dt) ago.
     def evaluate(self, t, dt):
-        # ##### UP DOWN DEMO WITH PLATFORM POSITION #####
-        # if t > self.desired_time * 2 * len(self.left_right):
-        #     return None
-
-        # if self.last_time == -1:
-        #     self.last_time = t
-
-        # delta = t - self.last_time
-
-        # if delta > self.desired_time:
-        #     self.last_time = t
-        #     self.index = (self.index + 1) % len(self.left_right)
-        #     delta = 0
-
-        # next_index = (self.index + 1) % len(self.left_right)
-
-        # qdot = ((self.left_right[next_index] - self.left_right[self.index]) / self.desired_time)
-        # q = self.left_right[self.index] + qdot * delta
-
-        # xdot = ((self.left_right_positions[next_index] - self.left_right_positions[self.index]) / self.desired_time)
-        # x = self.left_right_positions[self.index] + xdot * delta
-        # x = x.flatten().tolist()
-
-        ##### USE FKIN TO DETERMINE TOP PLATFORM #####
-        # x = self.KinematicChain.fkin(np.array([q[2], q[5], q[8], q[11], q[14], q[17]]), self.x0) # reverse?
-        # print("---- leg lengths ---\n", np.array([q[2], q[5], q[8], q[11], q[14], q[17]]))
-        # print("---- x ----\n", x)
-
         #### FULL DEMO ####
         if t > self.desired_time * len(self.demo):
             return None
@@ -151,15 +125,15 @@ class Trajectory():
 
         next_index = (self.index + 1) % len(self.demo)
 
-        qdot = ((self.demo[next_index] - self.demo[self.index]) / self.desired_time)
-        q = self.demo[self.index] + qdot * delta
+        sqdot = ((self.demo[next_index] - self.demo[self.index]) / self.desired_time)
+        sq = self.demo[self.index] + sqdot * delta
 
-        xdot = ((self.demo_positions[next_index] - self.demo_positions[self.index]) / self.desired_time)
-        x = self.demo_positions[self.index] + xdot * delta
-        x = x.flatten().tolist()
+        qdot = ((self.demo_positions[next_index] - self.demo_positions[self.index]) / self.desired_time)
+        q = self.demo_positions[self.index] + qdot * delta
+        q = q.flatten().tolist()
 
         # Return the position and velocity as python lists.
-        return (q.flatten().tolist(), qdot.flatten().tolist(), x)
+        return (sq.flatten().tolist(), sqdot.flatten().tolist(), q)
 
 #
 #  Main Code

@@ -20,7 +20,6 @@
 
    Node:        /generator
    Publish:     /joint_states           sensor_msgs/JointState
-
 '''
 
 import rclpy
@@ -88,7 +87,7 @@ class GeneratorNode(Node):
         self.marker.pose.orientation.w = 0.0
         self.marker.scale            = Vector3(x = diam, y = diam, z = diam)
         self.marker.mesh_use_embedded_materials = True
-        self.marker.mesh_resource = "package://finalprojectcode/meshes/Platform_Top-2.dae"
+        self.marker.mesh_resource = "package://finalprojectcode/meshes/Platform_Top.dae"
 
         # Create the marker array message.
         self.mark = MarkerArray()
@@ -153,19 +152,19 @@ class GeneratorNode(Node):
         if desired is None:
             self.future.set_result("Trajectory has ended")
             return
-        (q, qdot, x) = desired
+        (sq, sqdot, q) = desired
 
         # Check the results.
-        if not (isinstance(q, list) and isinstance(qdot, list)):
-            self.get_logger().warn("(q) and (qdot) must be python lists!")
+        if not (isinstance(sq, list) and isinstance(sqdot, list)):
+            self.get_logger().warn("(sq) and (sqdot) must be python lists!")
             return
-        if not (len(q) == len(self.jointnames)):
-            self.get_logger().warn("(q) must be same length as jointnames!")
+        if not (len(sq) == len(self.jointnames)):
+            self.get_logger().warn("(sq) must be same length as jointnames!")
             return
-        if not (len(q) == len(self.jointnames)):
-            self.get_logger().warn("(qdot) must be same length as (q)!")
+        if not (len(sq) == len(self.jointnames)):
+            self.get_logger().warn("(sqdot) must be same length as (sq)!")
             return
-        if not (isinstance(q[0], float) and isinstance(qdot[0], float)):
+        if not (isinstance(sq[0], float) and isinstance(sqdot[0], float)):
             self.get_logger().warn("Flatten NumPy arrays before making lists!")
             return
 
@@ -173,17 +172,18 @@ class GeneratorNode(Node):
         cmdmsg = JointState()
         cmdmsg.header.stamp = now.to_msg()      # Current time for ROS
         cmdmsg.name         = self.jointnames   # List of joint names
-        cmdmsg.position     = q                 # List of joint positions
-        cmdmsg.velocity     = qdot              # List of joint velocities
+        cmdmsg.position     = sq                 # List of joint positions
+        cmdmsg.velocity     = sqdot              # List of joint velocities
         self.pub.publish(cmdmsg)
 
         # publish platform top
-        if x is not None:
-            rot = Rotation.from_euler('xyz', x[3:], degrees=False).as_quat()
+        if q is not None:
+            q[5] += np.deg2rad(30)
+            rot = Rotation.from_euler('xyz', q[3:], degrees=False).as_quat()
             self.marker.header.stamp  = now.to_msg()
-            self.marker.pose.position.x = float(x[0])
-            self.marker.pose.position.y = float(x[1])
-            self.marker.pose.position.z = float(x[2] + 2.8)
+            self.marker.pose.position.x = float(q[0])
+            self.marker.pose.position.y = float(q[1])
+            self.marker.pose.position.z = float(q[2]+0.5)
             self.marker_publisher.publish(self.mark)
             self.marker.pose.orientation.x = rot[0]
             self.marker.pose.orientation.y = rot[1]
@@ -196,11 +196,10 @@ class GeneratorNode(Node):
     # Using K, we shall attempt to change the leg lengths with sliders and view the output.
     def update_values(self):
         self.trajectory.x = [self.slider1.get(), self.slider2.get(), self.slider3.get(), self.slider4.get(), self.slider5.get(), self.slider6.get()]
-        self.trajectory.q = self.trajectory.KinematicChain.fkin(self.trajectory.x, np.array([self.trajectory.q0[2], self.trajectory.q0[5], self.trajectory.q0[8], self.trajectory.q0[11], self.trajectory.q0[14], self.trajectory.q0[17]]))
+        self.trajectory.q = self.trajectory.KinematicChain.fkin(self.trajectory.x, np.array(self.trajectory.q0))
         
         if (np.linalg.norm(np.array(self.trajectory.x) - np.array(self.trajectory.KinematicChain.invkin(self.trajectory.q))) < 0.01):
             # Congrats, we actually converged. Update slider values.
-            print("converged")
             self.label1.config(text=f"Leg 1: {self.slider1.get():.2f}")
             self.label2.config(text=f"Leg 2: {self.slider2.get():.2f}")
             self.label3.config(text=f"Leg 3: {self.slider3.get():.2f}")
@@ -233,22 +232,22 @@ class GeneratorNode(Node):
         self.var6 = tk.DoubleVar()
 
         # Create the sliders
-        self.slider1 = tk.Scale(self.root, from_=2.4, to=4, orient="horizontal", variable=self.var1, resolution=0.01, command=lambda _: self.update_values())
+        self.slider1 = tk.Scale(self.root, from_=2.4, to=4.2, orient="horizontal", variable=self.var1, resolution=0.01, command=lambda _: self.update_values())
         self.slider1.pack(pady=5)
 
-        self.slider2 = tk.Scale(self.root, from_=2.4, to=4, orient="horizontal", variable=self.var2, resolution=0.01, command=lambda _: self.update_values())
+        self.slider2 = tk.Scale(self.root, from_=2.4, to=4.2, orient="horizontal", variable=self.var2, resolution=0.01, command=lambda _: self.update_values())
         self.slider2.pack(pady=5)
 
-        self.slider3 = tk.Scale(self.root, from_=2.4, to=4, orient="horizontal", variable=self.var3, resolution=0.01, command=lambda _: self.update_values())
+        self.slider3 = tk.Scale(self.root, from_=2.4, to=4.2, orient="horizontal", variable=self.var3, resolution=0.01, command=lambda _: self.update_values())
         self.slider3.pack(pady=5)
 
-        self.slider4 = tk.Scale(self.root, from_=2.4, to=4, orient="horizontal", variable=self.var4, resolution=0.01, command=lambda _: self.update_values())
+        self.slider4 = tk.Scale(self.root, from_=2.4, to=4.2, orient="horizontal", variable=self.var4, resolution=0.01, command=lambda _: self.update_values())
         self.slider4.pack(pady=5)
 
-        self.slider5 = tk.Scale(self.root, from_=2.4, to=4, orient="horizontal", variable=self.var5, resolution=0.01, command=lambda _: self.update_values())
+        self.slider5 = tk.Scale(self.root, from_=2.4, to=4.2, orient="horizontal", variable=self.var5, resolution=0.01, command=lambda _: self.update_values())
         self.slider5.pack(pady=5)
 
-        self.slider6 = tk.Scale(self.root, from_=2.4, to=4, orient="horizontal", variable=self.var6, resolution=0.01, command=lambda _: self.update_values())
+        self.slider6 = tk.Scale(self.root, from_=2.4, to=4.2, orient="horizontal", variable=self.var6, resolution=0.01, command=lambda _: self.update_values())
         self.slider6.pack(pady=5)
 
         # Set initial values

@@ -1,10 +1,12 @@
 '''
-final project
+This file demos the forward kinematics of the Stewart platform. 
+
+When executed, 6 sliders controlling the leg lengths are displayed and the 
+platform position and orientation is updated in real time.
 '''
 
 import rclpy
 import numpy as np
-from math import pi, sin, cos, acos, atan2, sqrt, fmod, exp
 
 # Grab the utilities
 from finalprojectcode.GeneratorNode      import GeneratorNode
@@ -23,30 +25,31 @@ class Trajectory():
         r =  1.25
         height = 2.6
 
-        self.base_pos = [[ 0.25     ,  1.5       , 0],
+        self.BASE_MOUNTS_POS = [[ 0.25     ,  1.5       , 0],
                          [-0.25     ,  1.5       , 0],
                          [-1.424038 , -0.533494  , 0],
                          [-1.1174038, -0.96650635, 0], 
                          [ 1.1174038, -0.96650635, 0], 
                          [ 1.424038 , -0.533494  , 0]]
-        self.center_pos = [0,  0, height - 0.2]
-        self.top_pos = [[r * np.cos(np.radians(60)) , r * np.sin(np.radians(60)) , height - 0.2],
-                        [r * np.cos(np.radians(120)), r * np.sin(np.radians(120)), height - 0.2],
-                        [r * np.cos(np.radians(180)), r * np.sin(np.radians(180)), height - 0.2],
-                        [r * np.cos(np.radians(240)), r * np.sin(np.radians(240)), height - 0.2],
-                        [r * np.cos(np.radians(300)), r * np.sin(np.radians(300)), height - 0.2],
-                        [r * np.cos(np.radians(0))  , r * np.sin(np.radians(0))  , height - 0.2]]
+        self.PLATFORM_CENTER = [0,  0, height ]
+        self.PLATFORM_MOUNTS_POS = [[r * np.cos(np.radians(60)) , r * np.sin(np.radians(60)) , height ],
+                        [r * np.cos(np.radians(120)), r * np.sin(np.radians(120)), height ],
+                        [r * np.cos(np.radians(180)), r * np.sin(np.radians(180)), height ],
+                        [r * np.cos(np.radians(240)), r * np.sin(np.radians(240)), height ],
+                        [r * np.cos(np.radians(300)), r * np.sin(np.radians(300)), height ],
+                        [r * np.cos(np.radians(0))  , r * np.sin(np.radians(0))  , height ]]
 
-        self.KinematicChain = KinematicChain(self.top_pos, self.center_pos, self.base_pos)
+        self.KinematicChain = KinematicChain(self.PLATFORM_MOUNTS_POS, self.PLATFORM_CENTER, self.BASE_MOUNTS_POS)
         
         # # Define the various points.
-        self.x0 = [0, 0, 0, 0, 0, 0]                                     # initial x
-        self.q0 = self.KinematicChain.stewart_to_spider_q(self.x0)       # initial q spider
-
+        self.q0 = [0, 0, 0 + height, np.radians(0), np.radians(0), np.radians(0)] # initial q
+        self.sq0 = self.KinematicChain.stewart_to_spider_q(self.q0)               # initial q spider
+        self.x0 = [height, height, height, height, height, height]
 
         # Define the various points.
-        self.q = self.q0                    # q spider 
-        self.x = np.array(self.x0) + 2.4    # x ([Tx, Ty, Tz, psi, theta, phi])
+        self.sq = self.sq0                    # q spider 
+        self.q = np.array(self.q0)            # q
+        self.x = self.x0
 
 
     # Declare the joint names.
@@ -61,11 +64,11 @@ class Trajectory():
 
     # Evaluate at the given time.  This was last called (dt) ago.
     def evaluate(self, t, dt):
-        qdot = np.zeros((18, 1))
-        q = np.array(self.KinematicChain.stewart_to_spider_q(np.array(self.x) - 2.4))
+        sqdot = np.zeros((18, 1))
+        sq = np.array(self.KinematicChain.stewart_to_spider_q(self.q))
 
         # Return the position and velocity as python lists.
-        return (q.flatten().tolist(), qdot.flatten().tolist(), np.array(self.x) - 2.4)
+        return (sq.flatten().tolist(), sqdot.flatten().tolist(), np.array(self.q))
 
 #
 #  Main Code
