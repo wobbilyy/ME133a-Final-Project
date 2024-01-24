@@ -1,313 +1,152 @@
-'''KinematicChain.py
-
-   This is the skeleton code for Kinematic Chains (HW5 Problem 5).
-
-   PLEASE EDIT/FIX.  See "FIXME" tags!
-
-   chain = KinematicChain(node, basefame, tipframe, expectedjointnames)
-
-      Initialize the kinematic chain, reading from the URDF message on
-      the topic '/robot_description', sent by the robot_state_publisher.
-      Determine the kinematic steps walking from the baseframe to the
-      tipframe.  This expects the active joints to match the given names.
-
-   (ptip, Rtip, Jv, Jw) = chain.fkin(q)
-
-      Compute the forward kinematics and report the results.
-
-
-   Node:        /kintest or as given
-   Subscribe:   /robot_description      std_msgs/String
-
-'''
-
-import enum
-import rclpy
 import numpy as np
+import math
+from sympy import symbols, cos, sin, diff
 
-from rclpy.node                 import Node
-from rclpy.qos                  import QoSProfile, DurabilityPolicy
-from std_msgs.msg               import String
-from urdf_parser_py.urdf        import Robot
+from finalprojectcode.TransformHelpers import Rotx, Roty, Rotz
 
-# Grab the utilities
-from hw5code.TransformHelpers   import *
-
-
-#
-#   Single Kinematic Step
-#
-#   This captures a single step from one frame to the next.  It be of type:
-#
-#     FIXED     Just a fixed T-matrix shift, nothing moving, not a DOF.
-#     REVOLUTE  A fixed T-matrix shift, followed by a rotation about an axis.
-#     LINEAR    A fixed T-matrix shift, followed by a transation along an axis.
-#
-#   A step contains several pieces of permanent data (coming from the URDF):
-#
-#     Tshift    Fixed shift: Transform of this frame w.r.t. previous
-#     elocal    Joint axis (if applicable) in the local frame
-#     type      One of the above
-#     name      String showing the name
-#     dof       If an active dof (not FIXED), the dof number
-#
-#   A step also contains several pieces of transient data, changing
-#   over time or, more precisely, as the joint positions (angles) change:
-#
-#     T         Transform of this frame w.r.t. the world frame
-#     p         Position  of this frame w.r.t. the world frame
-#     R         Rotation  of this frame w.r.t. the world frame
-#     e         Joint axis vector       w.r.t. the world frame
-#
-#   The latter information is reset and recomputed during each walk up
-#   the chain.
-#
-
-# Define the joint types.
-class Joint(enum.Enum):
-    FIXED    = 0
-    REVOLUTE = 1
-    LINEAR   = 2
-
-# Define a single step in the kinematic chain.
-class KinematicStep():
-    def __init__(self, Tshift, elocal, type, name):
-        # Store the permanent/fixed/URDF data.
-        self.Tshift = Tshift    # Transform w.r.t. previous frame
-        self.elocal = elocal    # Joint axis in the local frame
-        self.type   = type      # Joint type
-        self.name   = name      # Joint name
-        self.dof    = None      # Joint DOF number (or None if FIXED)
-
-        # Clear the information to be updated every walk up the chain.
-        self.clear()
-
-    def clear(self):
-        self.T = None           # Transform of frame w.r.t. world
-        self.p = None           # Position  of frame w.r.t. world
-        self.R = None           # Rotation  of frame w.r.t. world
-        self.e = None           # Axis vector        w.r.t. world
-
-    @classmethod
-    def FromRevoluteJoint(cls, joint):
-        return KinematicStep(T_from_URDF_origin(joint.origin),
-                             e_from_URDF_axis(joint.axis),
-                             Joint.REVOLUTE, joint.name)
-    @classmethod
-    def FromLinearJoint(cls, joint):
-        return KinematicStep(T_from_URDF_origin(joint.origin),
-                             e_from_URDF_axis(joint.axis),
-                             Joint.LINEAR, joint.name)
-    @classmethod
-    def FromFixedJoint(cls, joint):
-        return KinematicStep(T_from_URDF_origin(joint.origin),
-                             np.zeros((3,1)),
-                             Joint.FIXED, joint.name)
-
-
-#
-#   Kinematic Chain Object
-#
-#   This stores the information provided by the URDF in the form of
-#   steps (see above).  In particular, see the fkin() function, as it
-#   walks up the chain to determine the transforms.
-#
-
-# Define the full kinematic chain
+# Let q = [Tx, Ty, Tz, psi, theta, phi]
+# x = [L1, L2, L3, L4, L5]
 class KinematicChain():
-    # Helper functions for printing info and errors.
-    def info(self, string):
-        self.node.get_logger().info("KinematicChain: " + string)
-    def error(self, string):
-        self.node.get_logger().error("KinematicChain: " + string)
-        raise Exception(string)
+    def __init__(self, top_pos, center_pos, base_pos):
+        # Set up initial positions
+        self.top_pos = top_pos
+        self.center_pos = center_pos
+        self.base_pos = base_pos
+        
+        self.lam = 20   # For Newton Raphson
 
-    # Initialization.
-    def __init__(self, node, baseframe, tipframe, expectedjointnames):
-        # Store the node (for the helper functions).
-        self.node = node
+    def invkin(self, q):
+        '''
+        Given q = [Tx, Ty, Tz, psi, theta, phi],
+        invkin(q) returns x = [L1, L2, L3, L4, L5, L6]
+        '''
+        leg_vectors = self.get_leg_vectors(q)
 
-        # Prepare the information.
-        self.steps = []
-        self.dofs  = 0
+        X = [0,0,0,0,0,0] # X matrix
+        for i in range(6):
+            l = leg_vectors[i]
+            X[i] = math.sqrt(l[0]**2 + l[1]**2 + l[2]**2)  # Length of leg
 
-        # Grab the info from the URDF!
-        self.load(baseframe, tipframe, expectedjointnames)
-
-    # Load the info from the URDF.
-    def load(self, baseframe, tipframe, expectedjointnames):
-        # Create a temporary subscriber to receive the URDF.  We use
-        # the TRANSIENT_LOCAL durability, so that we see the last
-        # message already published (if any).
-        self.info("Waiting for the URDF to be published...")
-        self.urdf = None
-        def cb(msg):
-            self.urdf = msg.data
-        topic   = '/robot_description'
-        quality = QoSProfile(durability=DurabilityPolicy.TRANSIENT_LOCAL,
-                             depth=1)
-        sub = self.node.create_subscription(String, topic, cb, quality)
-        while self.urdf is None:
-            rclpy.spin_once(self.node)
-        self.node.destroy_subscription(sub)
-
-        # Convert the URDF string into a Robot object and report.
-        robot = Robot.from_xml_string(self.urdf)
-        self.info("Proccessing URDF for robot '%s'" % robot.name)
-
-        # Parse the Robot object into a list of kinematic steps from
-        # the base frame to the tip frame.  Search backwards, as the
-        # robot could be a tree structure: while a parent may have
-        # multiple children, every child has only one parent.  The
-        # resulting chain of steps is unique.
-        frame = tipframe
-        while (frame != baseframe):
-            # Look for the URDF joint to the parent frame.
-            joint = next((j for j in robot.joints if j.child == frame), None)
-            if (joint is None):
-                self.error("Unable find joint connecting to '%s'" % frame)
-            if (joint.parent == frame):
-                self.error("Joint '%s' connects '%s' to itself" %
-                           (joint.name, frame))
-            frame = joint.parent
-
-            # Convert the URDF joint into a simple step.
-            if joint.type == 'revolute' or joint.type == 'continuous':
-                self.steps.insert(0, KinematicStep.FromRevoluteJoint(joint))
-            elif joint.type == 'prismatic':
-                self.steps.insert(0, KinematicStep.FromLinearJoint(joint))
-            elif joint.type == 'fixed':
-                self.steps.insert(0, KinematicStep.FromFixedJoint(joint))
-            else:
-                self.error("Joint '%s' has unknown type '%s'" %
-                           (joint.name, joint.type))
-
-        # Set the active DOF numbers walking up the steps.
-        dof = 0
-        for s in self.steps:
-            if s.type is not Joint.FIXED:
-                s.dof = dof
-                dof += 1
-        self.dofs = dof
-        self.info("URDF has %d steps, %d active DOFs:" %
-                  (len(self.steps), self.dofs))
-
-        # Report we found.
-        for (step, s) in enumerate(self.steps):
-            string = "Step #%d %-8s " % (step, s.type.name)
-            string += "      " if s.dof is None else "DOF #%d" % s.dof
-            string += " '%s'" % s.name
-            self.info(string)
-
-        # Confirm the active joint names matches the expectation
-        jointnames = [s.name for s in self.steps if s.dof is not None]
-        if jointnames != list(expectedjointnames):
-            self.error("Chain does not match the expected names: " +
-                  str(expectedjointnames))
+        return X
 
 
-    # Compute the forward kinematics!
-    def fkin(self, q):
-        # Check the number of joints
-        if (len(q) != self.dofs):
-            self.error("Number of joint angles (%d) does not chain (%d)",
-                       len(q), self.dofs)
+    # Numerically compute Jacobian without derivatives. Just do J = (fkin(x) + fkin(x+q))/ dq
+    def compute_jacobian(self, q, epsilon=1e-6):
+        J = np.zeros((6, 6))
+        X0 = self.invkin(q)
 
-        # Clear any data from past invocations (just to be safe).
-        for s in self.steps:
-            s.clear()
+        for i in range(6):
+            q_perturbed = q.copy()
+            q_perturbed[i] += epsilon
 
-        # Initialize the T matrix to walk up the chain, w.r.t. world frame!
-        T = np.eye(4)
+            X_perturbed = self.invkin(q_perturbed)
+            numerical_derivative = (np.array(X_perturbed) - np.array(X0)) / epsilon
 
-        # Walk the chain, one step at a time.  Record the T transform
-        # w.r.t. world for each step.
-        for s in self.steps:
-            # FIXME - Note the step s contains:
-            #   s.Tshift     Transform w.r.t. the previous frame
-            #   s.elocal     Joint axis in the local frame
-            #   s.dof        Joint number
-            #   q[s.dof]     Joint position (angle for revolute, displacement for linear)
+            J[:, i] = numerical_derivative
 
-            T = T @ s.Tshift
-            
-            # Take action based on the joint type.
-            if s.type is Joint.REVOLUTE:
-                # Revolute is a rotation:
-                T = T @ T_from_Rp(Rote(s.elocal, q[s.dof]), pzero())
-            elif s.type is Joint.LINEAR:
-                # Linear is a translation:
-                T = T @ T_from_Rp(Reye(), s.elocal * q[s.dof])
+        return J
 
-            # Store the info (w.r.t. world frame) into the step.
-            s.T = T
-            s.p = p_from_T(T)
-            s.R = R_from_T(T)
-            s.e = R_from_T(T) @ s.elocal
+    def fkin(self, xgoal, qstart):
+        '''
+        Newton Raphson with invkin and invJac to find forward kinematics
+        of given leg lengths
+        Used hw5p2 solution code as template.
 
-        # Collect the tip information w.r.t. world!
-        ptip = p_from_T(T)
-        Rtip = R_from_T(T)
+        Given x = [L1, L2, L3, L4, L5, L6],
+        and qstart = [Tx, Ty, Tz, psi, theta, phi]     (intial guess)
+        fkin returns q = [Tx, Ty, Tz, psi, theta, phi] (resulting orientation of top platform)
+        '''
 
-        # Re-walk up the chain to fill in the Jacobians.
-        Jv = np.zeros((3,self.dofs))
-        Jw = np.zeros((3,self.dofs))
-        for s in self.steps:
-            # FIXME AGAIN.  From the above, the step now includes:
-            #   s.p     Position w.r.t. world
-            #   s.e     Joint axis w.r.t. world
-            
-            # Take action based on the joint type.
-            if s.type is Joint.REVOLUTE:
-                # Revolute is a rotation:
-                Jv[:,s.dof:s.dof+1] = cross(s.e, ptip - s.p)
-                Jw[:,s.dof:s.dof+1] = s.e
-            elif s.type is Joint.LINEAR:
-                # Linear is a translation:
-                Jv[:,s.dof:s.dof+1] = s.e
-                Jw[:,s.dof:s.dof+1] = np.zeros((3,1))
+        # Set the initial joint value guess.
+        q = qstart
 
-        # Return the info
-        return (ptip, Rtip, Jv, Jw)
+        # Get goal translation and rotation.
+        
+        # Number of steps to try.
+        N = 20
 
+        # Iterate
+        for i in range(N + 1):
+            # Determine where you are
+            x = self.invkin(q)
+            J = self.compute_jacobian(q) 
+            #J_wrong = self.invJac(q)
 
-#
-#   Main Code
-#
-#   This simply tests the kinematic chain and associated calculations!
-#
-def main(args=None):
-    # Set the print options to something we can read.
-    np.set_printoptions(precision=3, suppress=True)
+            # Compute the delta and adjust.
+            xdelta = np.array(np.array(xgoal) - np.array(x)).transpose()
+            #print(f"   our lengths: {x} \nvs desired lengths: {xgoal}")
+            qdelta = np.linalg.pinv(J) @ xdelta
+            q = q + qdelta
 
-    # Initialize ROS and the node.
-    rclpy.init(args=args)
-    node = Node('kintest')
+            # Check whether to break.
+            if np.linalg.norm(np.array(xgoal) - np.array(x)) < 1e-12:
+                return q
+        
+        # failed to converge, return initial q
+        return q
+    
+    def stewart_to_spider_q(self, stewart_q):
+        '''
+        In: stewart_q [Tx, Ty, Tz, psi, theta, phi]
+        Out: spider_q [leg1-pitch, leg1-roll, leg1-prismatic,
+                leg2-pitch, leg2-roll, leg2-prismatic,
+                leg3-pitch, leg3-roll, leg3-prismatic,
+                leg4-pitch, leg4-roll, leg4-prismatic,
+                leg5-pitch, leg5-roll, leg5-prismatic,
+                leg6-pitch, leg6-roll, leg6-prismatic]
+        '''
+        
+        # To get the leg_pitch and leg_roll, let's use our 2DOF inverse kinematics
+        # for a pan-tilt algorithm
+        leg_vectors = self.get_leg_vectors(stewart_q)
+        leg_lengths = self.invkin(stewart_q)
+        spider_q = []
 
-    # Set up the kinematic chain object, assuming the 3 DOF.
-    jointnames = ['theta1', 'theta2', 'theta3']
-    baseframe  = 'world'
-    tipframe   = 'tip'
-    chain = KinematicChain(node, baseframe, tipframe, jointnames)
+        for i in range(6):
+            leg = leg_vectors[i]
+            leg_length = leg_lengths[i]
+            R = np.sqrt(leg[0]**2 + leg[1]**2 + leg[2]**2)
+            dx = leg[1]/R
+            dy = leg[2]/R
+            dz = leg[0]/R
+            r = np.sqrt(dx**2 + dy**2)
 
-    # Define the test.
-    def test(q):
-        (ptip, Rtip, Jv, Jw) = chain.fkin(q)
-        print('q:\n',       q)
-        print('ptip(q):\n', ptip)
-        print('Rtip(q):\n', Rtip)
-        print('Jv(q):\n',   Jv)
-        print('Jw(q):\n',   Jw)
-        print('----------------------------------------');
+            pitch = np.arctan2(dz,r) # Rotation about Y 
+            roll =  np.arctan2(-dx/r,dy/r) # Rotation about X
 
-    # Run the tests.
-    test(np.radians(np.array([  20.0,   40.0,  -30.0])).reshape(3,1))
-    test(np.radians(np.array([  30.0,   30.0,   60.0])).reshape(3,1))
-    test(np.radians(np.array([ -45.0,   75.0,  120.0])).reshape(3,1))
+            spider_q.append(pitch)
+            spider_q.append(roll)
+            spider_q.append(leg_length - 2.4)
 
-    # Shutdown the node and ROS.
-    node.destroy_node()
-    rclpy.shutdown()
+        return spider_q
 
-if __name__ == "__main__":
-    main()
+    def get_leg_vectors(self, q):
+        '''
+        Given q = [Tx, Ty, Tz, psi, theta, phi],
+        get_leg_vectors(q) returns x = [l1x, l1y, l1z, 
+                                        l2x, l2y, l2z,
+                                        l3x, l3y, l3z,
+                                        l4x, l4y, l4z,
+                                        l5x, l5y, l5z,
+                                        l6x, l6y, l6z]
+        '''
+        Tx = q[0] + self.center_pos[0]
+        Ty = q[1] + self.center_pos[1]
+        Tz = q[2] + self.center_pos[2]
+        psi = q[3]
+        theta = q[4]
+        phi = q[5]
+
+        L = []
+
+        for i in range(6):
+            T = np.array([Tx,Ty,Tz]).transpose()                # Translation of the center of top
+            p = np.array([self.top_pos[i][0] - self.center_pos[0], 
+                          self.top_pos[i][1] - self.center_pos[1],
+                          self.top_pos[i][2] - self.center_pos[2]]).transpose()  # Vector between point on top and center of top
+            b = np.array(self.base_pos[i]).transpose()               # Base position of given leg
+            Rb = Rotx(psi) @ Roty(theta) @ Rotz(phi)            # Rotation of the top plate
+            l = (T + Rb @ p - b)                                # Vector of leg
+            L.append([float(l[0]), float(l[1]), float(l[2])])
+        
+        return L
